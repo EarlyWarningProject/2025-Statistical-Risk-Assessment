@@ -1,0 +1,1461 @@
+---
+title: "Adding in new data - 2025 update"
+author: "Natalie Bryce"
+date: "2025-09-03"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+#rm(list = ls())
+library(data.table)
+library(dplyr)
+base_mk_data = "input/basedata2025_4august2025.csv"
+# the year of the data we are adding in
+update_years <- c(2024)
+```
+
+#Start with base country-year and MK data template
+```{r}
+
+#read in base country-year and MK data
+  dat <- fread(base_mk_data)
+
+#remove "VI"
+dat <- dat %>% 
+  select(-V1)
+
+```
+
+The following model vars are already included in the base MK template: year, widetargeting, narrowtargeting 
+
+The following model vars are merged in from external sources (and then transformed, in some cases): 
+
+Vdem: v2csgender_binary, v2mecenefm_binary, partyban.new.0, partyban.new.1, partyban.new.2, minorityrule, judicialreform, religiousfreedom, pol_killing_approved, freediscussion, social_inequality, even_civilrights, repress_civilsoc, social_power_dist, ses_power_dist
+NOTE: For the 2025 update, we changed the coding on repress_civilsoc - it was previously 1 if the vdem coding was 0, and 0 otherwise. We changed to 1 if the vdem coding is 0, 1 or 2 and 0 otherwise.
+
+WDI: wdi.popsize.log2, gdppcgrowth (renamed from gdppcgrowth.combined) (note - tradeshare was dropped from the model this year, and infant mortality will now come from UN population data)
+
+Other sources: efindex, discrimpop, reg.na, reg.eap, reg.sca, reg.mna, reg.eur, ios.iccpr1, battledeaths.log2 (renamed from battledeaths.ln2), coup.try.5yr, un_imr_sqrt (new as of 2024 update)
+
+The following model vars are coded by EWP, based on other vars: mk_ongoing_count_log, mean_mk_onset_interaction (new as of 2024 update), mk_onset_prev_year, newcountry, mk_ever, year_sq, countryage_new_log2 (renamed from countryage_new_ln), includesnonstate
+
+The following model vars are new as of 2024 update: mean_mk_onset_interaction
+
+#Vdem 11 - We have to import e_migdppc and e_migdpgro from Vdem v11 since they were removed in more recent versions
+```{r, eval = FALSE}
+vdem11 <- fread("input/V-Dem-CY-Full+Others-v11.1.csv")
+#View(vdem11)
+ 
+ # subset to just use these variables 
+  
+  keep <- c("COWcode", "country_name", "year", "e_migdppc", "e_migdpgro")
+  
+  vdem11 <- vdem11 %>% 
+    filter(year>=1934) %>% 
+    select(all_of(keep))
+  
+  #change so that gdp growth is on the same scale as world bank
+ vdem11 <- vdem11 %>% 
+    mutate(e_migdpgro = e_migdpgro*100)
+  
+
+save(vdem11, file = "input/vdem11.Rdata")
+ 
+```
+
+#Vdem new - import data from newest version
+```{r, eval = FALSE}
+#load v-dem data
+library(vdemdata)
+
+data(vdem)
+ #limit to relevant vars. 
+ 
+ vdem_vars <- c("v2clkill_ord",
+                 "v2clsocgrp_ord", 
+                 "v2clrgunev_ord", 
+                 "v2csreprss_ord", 
+                 "v2pepwrsoc_ord", 
+                 "v2psparban_ord", 
+                 "v2jureform_ord",
+                 "v2clrelig_ord", 
+                 "v2xcl_disc", 
+                 "v2pepwrses", 
+                 "e_cow_exports", 
+                 "e_cow_imports", 
+                 "v2csgender_ord",
+                 "v2mecenefm_ord",
+                  "e_mipopula")
+
+ # subset to just use these variables 
+  
+  keep <- c("COWcode", "country_name", "year", vdem_vars)
+  
+# function that renames and formats variables, 
+# takes dataset and vector of variables to keep as inputs
+  
+  source("helper scripts/format_vdem.R") #note - you need to update the year in this separate file. 
+  
+# function that maps COW codes onto PITF country codes, 
+# contained in format_vdem 
+  
+  source("helper scripts/cowtopitf2018.R") #nothing to change here; not sure if we even use this now
+
+  
+  # format and save vdem
+  
+  vdemfull <- as.data.table(vdem)
+  vdem <- format_vdem(dat = vdemfull, keep = keep)
+  
+  #double check new coding
+  vdem %>% 
+  filter(year >=1960) %>% 
+  select(year,v2csreprss_ord, repress_civilsoc)
+
+summary(vdem$repress_civilsoc)
+
+#save
+
+save(vdem, file = "input/vdem.Rdata")
+```
+
+## read in formatted VDEM variables from v11 and newest version
+```{r}
+load("input/vdem.Rdata")
+load("input/vdem11.Rdata")
+
+ #check cow codes
+
+# Filter for rows where COW codes are present in one dataset but not the other
+diff_cowcodes <- setdiff(unique(vdem$COWcode), unique(dat$ccode))
+print(diff_cowcodes)
+
+#COW code differences: 
+#713 (Taiwan), 260 - Germany - need to fix.  53 - Barbados (under 500k) ,  395 - Iceland (under 500k), 403 - Sao Tome and Principe (under 500k), 591 - Seychelles (under 500k), 935 - Vanuatu (under 500k), 511 - Zanzibar (not considered independent)
+
+#Fix Germany. We call West Germany "Germany" throughout, and always give it the COW code 255. We call East Germany "Germany (East)" and include it up until 1989, with the COW code 265. Vdem calls West Germany "Germany" and gives it the COW code 260, but it starts in 1949 and ends in 1990. Vdem calls East Germany "German Democratic Republic" with the COW code 265, and ends it in 1990. Vdem calls unified germany "Germany" and gives it the COW code 255 from 1934 - 1944 and 1991 - present. Therefore when merging East Germany will merge correctly, but West Germany will not. We need to change the COW code in Vdem for West Germany to 255 for the years 1949 - 1990. Note also that VDEM does not include data for 1945 - 1948 for any version of Germany.
+
+ vdem <- vdem %>%
+   mutate(COWcode = ifelse(year >=1949 & year <=1990 & COWcode == 260, 255,COWcode))
+ 
+  vdem11 <- vdem11 %>%
+   mutate(COWcode = ifelse(year >=1949 & year <=1990 & COWcode == 260, 255,COWcode))
+ 
+ 
+ #double check serbia/yugoslavia. Vdem uses name "Serbia" w/ ccode 345 from 1934 to 2023, does not use ccode 340 (Yugoslavia), same as us.
+ #vdem %>% 
+ #  filter(country_name == "Serbia")
+ 
+ # vdem %>% 
+ #  filter(COWcode == "340")
+  
+  #check Yemen. 678 goes through 1989, same as us. 680 goes through 1990, so need to remove that to avoid a duplicate. 679 starts in 1990, same as us. 
+  vdem <- vdem %>% 
+    filter(!(COWcode == 680 & year == 1990))
+  
+  vdem11 <- vdem11 %>% 
+    filter(!(COWcode == 680 & year == 1990))
+
+```
+
+##merge into full dataset
+note - e_migdppc = gdp per cap; e_migdpgro = gdp per capita growth 
+```{r}
+
+ dat <- dat %>% 
+   left_join(vdem, by = c("ccode" = "COWcode", "year")) %>% 
+   select(-country_name)
+ 
+  dat <- dat %>% 
+   left_join(vdem11, by = c("ccode" = "COWcode", "year")) %>% 
+   select(-country_name)
+  
+  #there are two weird years where e_miggdpc is 0 for UAE, which causes tradeshare to go to infinity. I am changing this to NA because I assume it is a mistake.
+
+  dat <- dat %>% 
+    mutate(e_migdppc = ifelse(country == "United Arab Emirates" & year == 1991, NA,e_migdppc),
+           e_migdppc = ifelse(country == "United Arab Emirates" & year == 1992, NA, e_migdppc))
+
+```
+
+#WDI 
+```{r}
+ #first add iso2 and iso3 codes to dat so that we can merge
+  library(countrycode)
+  
+  # Get the codelist dataset from the countrycode package
+data("codelist", package = "countrycode")
+
+# Select and rename columns for clarity
+cow_iso_mapping <- codelist %>%
+  select(ccode = cown, iso2 = iso2c, iso3 = iso3c)
+
+# Merge with the mapping dataset
+dat <- merge(dat, cow_iso_mapping, by = "ccode", all.x = TRUE)
+```
+
+##WDI - pull and clean new data 
+```{r, eval =  FALSE}
+#Add in WDI data
+
+ library(WDI) 
+
+ wdilist <- c("NE.TRD.GNFS.ZS",     # Trade (% of GDP)
+               "NY.GDP.PCAP.KD",     # GDP per capita (constant 2015 US$)
+               "NY.GDP.PCAP.KD.ZG",  # GDP per capita growth (annual %, calculated using current USD)
+               "SP.POP.TOTL",        # Population, total
+               "SP.DYN.IMRT.IN",     # Infant mortality rate (per 1,000 live births,
+              "NE.IMP.GNFS.KD",      # Imports of goods and services (constant 2015 USD)
+              "NE.EXP.GNFS.KD")      # Exports of goods and services (constant 2015 USD)
+               
+      
+
+ # confirm that all of the old indicator names are in use 
+  
+    (check.names <- rbindlist(lapply(wdilist, function(x) {
+      # search the indicator list for each of the variables in wdilist
+       res <- WDIsearch(x, field = "indicator") 
+       # take the first match (drops those with extra letters on the end)
+       if(length(res) > 2){
+         res <- res[1, ]
+       } 
+       data.table("indicator" = res[1], "name" = res[2])})))
+ 
+ # Set timeout to a higher value (e.g., 300 seconds)
+ library(httr)
+set_config(timeout(300))
+
+# Extract latest version of desired variables from WDI
+
+  wdifull <- WDI(country="all", indicator=wdilist, extra=FALSE, start=1960)
+  
+
+#Merge ccodes with WDI dataset
+  
+#remove extra column
+cow_iso_mapping <- cow_iso_mapping %>% 
+  select(-iso2)
+
+wdi <- wdifull %>% 
+  left_join(cow_iso_mapping, by = c("iso3c" = "iso3"))
+```
+
+
+```{r, eval =  FALSE}
+#check for differences
+      diff <- setdiff(unique(dat$iso3),unique(wdifull$iso3c))
+      
+        # dat %>%
+        # filter(is.na(iso3)) %>%
+        #   select(country) %>%
+        #   unique()
+
+#Taiwan, East Germany, Serbia, Czechoslovakia, Kosovo, versions of Vietnam and Yemen are mismatches. 
+#WDI does not include Taiwan. Nothing we can do about this except fill in from other sources.
+#WDI only includes West Germany as "Germany" from 1960 - present, with iso2 as DE. Nothing we can do about this except fill in from other sources.
+# WDI includes Serbia with iso3c as SRB from 1960 - present, does not include former Yugoslavia. Therefore we need to recode Serbia as ccode 345
+        
+        wdi <- wdi %>% 
+          mutate(ccode = ifelse(iso3c == "SRB", 345,ccode))
+        
+# WDI uses iso3c code CZE for Czechoslovakia/Czech Republic (and calls it Czechia) and ISO3 code: SVK for Slovakia (and calls it Slovak Republic). We use ccode 315 for Czechoslovakia from 1934 - 1992, then ccode 316 from 1993 - present for Czech Republic, and ccode 317 from 1993 - present for Slovakia.
+        
+         wdi <- wdi %>% 
+          mutate(ccode = ifelse(iso3c == "CZE" & year <1993, 315,ccode),
+                 ccode = ifelse(iso3c == "CZE" & year >=1993, 316, ccode),
+                 ccode = ifelse(iso3c == "SVK" & year >=1993, 317,ccode))
+         
+# WDI includes Kosovo with the iso3c XKX. We include Kosovo with ccode 347 from 2008 - present. 
+         
+         wdi <- wdi %>% 
+           mutate(ccode = ifelse(iso3c == "XKX" & year >=2008, 347,ccode))
+         
+#WDI uses iso3c "VNM" for "Viet Nam" which represents North Vietnam and unified vietnam. South Vietnam is not included. We use ccode 817 for "Vietnam, Republic of" from 1954 - 1975, and ccode 816 for "Vietnam, Democratic Republic of" from 1954 - 2023. Nothing wee can do about exclusion of South Vietnam.
+         
+#WDI uses iso3c "YEM" for "Yemen, Rep." for 1960 - present, including unified Yemen and People's Democratic Republic of Yemen (South Yemen). Yemen Arab Republic is not included. We use (i) 678/Yemen (North) until 1989, (ii) 680/South Yemen 1967-1989, and (iii) Yemen (679) 1990 onward (formerly Yemen (unified) in the 2023 update but EWP asked to change). Need to fix the ccode mapping so that it is 680 from 1967 - 1989.
+         
+        wdi <- wdi %>% 
+           mutate(ccode = ifelse(iso3c == "YEM" & year <=1989, 680,ccode),
+                  ccode = ifelse(iso3c == "YEM" & year>1989, 679,ccode))
+  
+        
+# Rename variables-- add a "new" to indicate these are newly brought in from wdi
+# to avoid reusing names already in the old EWP data      
+        
+  setDT(wdi)
+  wdi_cols <- c("wdi.trade.new",
+             "wdi.gdppc.new",
+             "wdi.gdppcgrow.new",
+             "wdi.popsize.new", 
+             "wdi.imrate.new",
+             "wdi.imports.new",
+             "wdi.exports.new")
+  setnames(wdi, 
+           c("NE.TRD.GNFS.ZS",    
+             "NY.GDP.PCAP.KD",    
+             "NY.GDP.PCAP.KD.ZG", 
+             "SP.POP.TOTL",       
+             "SP.DYN.IMRT.IN",
+             "NE.IMP.GNFS.KD",
+             "NE.EXP.GNFS.KD"), 
+           wdi_cols)
+
+#export wdi data 
+   fwrite(wdi, "input/wdi.csv")
+```
+
+
+##merge WDI with dat - population, gdp per capita growth, infant mortality 
+```{r}
+#Read in wdi data
+
+wdi <- fread("input/wdi.csv")
+
+wdi <- wdi %>% 
+  select(-country,-iso2c,-iso3c)
+
+ dat <- dat %>% 
+   left_join(wdi, by = c("ccode", "year"))
+    
+#create log base 2 versions - wdi.popsize.log2, wdi.trade.new.log2
+ dat <- dat %>% 
+   mutate(wdi.popsize.log2 = log2(wdi.popsize.new),
+          wdi.trade.new.log2 = log2(wdi.trade.new))
+ 
+```
+
+#Maddison data (currently using 2023 release) - import gdp per cap. New as of 2024 update, to address missingness issues. No new data as of 2025.
+
+```{r, eval = F}
+library(haven)
+maddison <- read_dta("input/maddison2023_web.dta")
+#limit to relevant years and vars
+maddison <- maddison %>% 
+  filter(year>=1934) %>% 
+  select(countrycode,country,year,gdppc,pop)
+
+#rename columns for clarity
+maddison <- maddison %>% 
+  rename(mad_gdppc = gdppc,
+         mad_pop = pop)
+
+#add cow codes
+maddison <- maddison %>% 
+  left_join(cow_iso_mapping, by = c("countrycode" = "iso3"))
+
+  
+#check for differences
+      diff <- setdiff(unique(dat$ccode),unique(maddison$ccode))
+      print(diff)
+      
+#110 - Guyana - not included 
+#115 - Surinam - not included 
+#265 - East Germany - they don't include. 
+#315 - Czechoslovakia. We use ccode 315 for Czechoslovakia from 1934 - 1992, then ccode 316 from 1993 - present for Czech Republic, and ccode 317 from 1993 - present for Slovakia.
+      
+     maddison <- maddison %>% 
+        mutate(ccode = ifelse(country == "Czechoslovakia",315,ccode))
+
+#345 - Yugoslavia. Need to fix.
+     
+      maddison <- maddison %>% 
+        mutate(ccode = ifelse(country == "Former Yugoslavia",345,ccode))
+      
+#347 - Kosovo - they don't include
+#520 - Somalia - they don't include
+#531 - Eritrea - they don't include
+#626 - South Sudan - they don't include
+#678 - Yemen (Arab Republic of Yemen) - need to fix. (i) 678/Yemen (North) until 1989, (ii) South Yemen 1967-1989, and (iii) 
+#Yemen (679) 1990 onward (formerly Yemen (unified) in the 2023 update but EWP asked to change).
+      
+      # maddison %>% 
+      #   filter(country == "Yemen")
+      
+      maddison <- maddison %>% 
+        mutate(ccode = ifelse(country == "Yemen" & year <=1989,678,ccode),
+               ccode = ifelse(country == "Yemen" & year >=1990,679,ccode))   
+      
+#680 - South Yemen - they do not include.        
+#760 - Bhutan - not included
+#781 - Maldives - they don't include      
+#817 - Vietnam, Republic of - they don't include      
+#860 - East Timor - they don't include
+#910 - Papua New Guinea - they don't include    
+#940 - Solomon Islands - they don't include
+#950 - Fiji - they don't include
+     
+      #check for differences again
+      diff <- setdiff(unique(dat$ccode),unique(maddison$ccode))
+      print(diff)
+      
+      #nothing else we can resolve.
+      
+      #convert mad_pop to correct scale
+      maddison <- maddison %>% 
+        mutate(mad_pop = mad_pop * 10^3)
+      
+      #reduce to relevant columns 
+      
+      maddison <- maddison %>% 
+        select(country,year,mad_gdppc,mad_pop,ccode)
+      
+      #save
+      
+      fwrite(maddison, "input/maddison.csv")
+```
+
+##merge in madison data 
+```{r}
+maddison <- fread("input/maddison.csv")
+
+#remove country before merge
+maddison <- maddison %>% 
+  select(-country)
+
+#join
+
+dat <- dat %>% 
+  left_join(maddison, by = c("ccode","year"))
+```
+
+##create maddison version of gdp per cap growth and population
+```{r}
+
+dat <- dat %>%
+  arrange(ccode, year) %>%
+  group_by(ccode) %>%
+  mutate(mad_gdppcgrowth = (mad_gdppc - lag(mad_gdppc)) / lag(mad_gdppc) * 100) %>%
+  ungroup()
+  
+    # create maddison version of population
+  dat$mad_popsize.log2 = log2(dat$mad_pop)
+
+```
+
+
+#efindex - clean data
+This dataset comes from Lenka Draznova, avail here: https://dataverse.harvard.edu/dataset.xhtml?persistentId=doi%3A10.7910%2FDVN%2F4JQRCL
+```{r, eval = F}
+hief <- fread("input/HIEF_data.csv")
+
+#Unfortunately these data don't have any kind of country code, so we have to merge in based on names. Here I fix country names to match what we use.
+
+hief$Country[hief$Country=="German Federal Republic"] = "Germany" 
+hief$Country[hief$Country=="German Democratic Republic"] = "Germany (East)" 
+hief$Country[hief$Country=="Italy"] = "Italy/Sardinia" 
+hief$Country[hief$Country=="Yugoslavia"] = "Serbia" 
+hief$Country[hief$Country=="Macedonia"] = "Macedonia (Former Yugoslav Republic of)" 
+hief$Country[hief$Country=="Romania"] = "Rumania" 
+hief$Country[hief$Country=="USSR"] = "Russia (Soviet Union)" 
+hief$Country[hief$Country=="Belarus"] = "Belarus (Byelorussia)" 
+hief$Country[hief$Country=="Russia"] = "Russia (Soviet Union)" 
+hief$Country[hief$Country=="Cote d'Ivoire"] = "Cote D’Ivoire" 
+hief$Country[hief$Country=="Burkina Faso"] = "Burkina Faso (Upper Volta)" 
+hief$Country[hief$Country=="Democratic Republic of Congo"] = "Congo, Democratic Republic of (Zaire)"
+hief$Country[hief$Country=="Tanzania"] = "Tanzania/Tanganyika" 
+hief$Country[hief$Country=="Zimbabwe"] = "Zimbabwe (Rhodesia)" 
+hief$Country[hief$Country=="Iran"] = "Iran (Persia)"
+hief$Country[hief$Country=="Turkey"] = "Turkey (Ottoman Empire)" 
+hief$Country[hief$Country=="Yemen Arab Republic"] = "Yemen (Arab Republic of Yemen)" 
+hief$Country[hief$Country=="Yemen PDR"] = "Yemen, People's Republic of" 
+hief$Country[hief$Country=="Democratic People's Republic of Korea"] = "Korea, People's Republic of" 
+hief$Country[hief$Country=="Republic of Korea"] = "Korea, Republic of" 
+hief$Country[hief$Country=="Myanmar"] = "Myanmar (Burma)" 
+hief$Country[hief$Country=="Sri Lanka"] = "Sri Lanka (Ceylon)" 
+hief$Country[hief$Country=="Cambodia"] = "Cambodia (Kampuchea)" 
+hief$Country[hief$Country=="Democratic Republic of Vietnam"] = "Vietnam, Democratic Republic of" 
+hief$Country[hief$Country=="Republic of Vietnam"] = "Vietnam, Republic of" 
+hief$Country[hief$Country=="Suriname"] = "Surinam" 
+hief$Country <- ifelse(hief$Country == "Yemen (Arab Republic of Yemen)" & hief$Year >= 1990,
+                       "Yemen", hief$Country)
+
+#check that all changes worked. There are 65 values (Taiwan) that cannot be merged because they are for a country that is not included in our dataset.
+hief %>% 
+  anti_join(dat, by = c("Country" = "country"))
+                         nvc
+# Filter for rows where COW codes are present in one dataset but not the other. There are none.
+diff_countries <- setdiff(unique(hief$Country), unique(dat$country))
+print(diff_countries)
+
+#check for duplicates
+# hief %>% 
+#      group_by(Country, Year) %>%
+#      filter(n()>1)
+
+#Their dataset includes two values for Russia and the Soviet Union in 1991. Since our dataset only has one Russia in 1991, and the USSR collapsed at the very end of 1991, I resolve in favor of the value that is most similar to the value in 1990 (hief =0.691). Note this is a change from the 2023 update.
+
+# hief %>% 
+#   filter(Country == "Russia (Soviet Union)", Year == 1991)
+# 
+# hief %>% 
+#   filter(Country == "Russia (Soviet Union)", Year == 1990)
+
+hief <- hief %>% 
+  filter(!(Country == "Russia (Soviet Union)" & EFindex == "0.286"))
+
+#there are also some odd duplicates in their data that don't need to be there, so I remove those.
+
+hief <- distinct(hief)
+
+#rename EFindex so that it is lowercase
+hief <- hief %>% 
+  mutate(efindex = EFindex) %>% 
+  select(-EFindex)
+
+#save hief data
+fwrite(hief, "input/hief_clean.csv")
+```
+
+##merge in efindex data and resolve missingness
+```{r}
+#read in hief data
+hief <- fread("input/hief_clean.csv")
+
+#join with dat 
+dat <- dat %>% 
+  left_join(hief, by = c("country" = "Country", "year" = "Year"))
+
+#review missingness - there are 2,159 missing values (all years after 2013)
+# dat %>% 
+#   filter(is.na(efindex),year>=1945) %>% 
+#   select(country, year, efindex)
+
+#carry forward values to reduce missingness
+
+library("zoo")
+
+dat <- dat %>% 
+  group_by(ccode) %>% 
+  arrange(year) %>% 
+  mutate(efindex = na.locf(efindex, na.rm = FALSE)) %>% 
+  ungroup()
+
+#Since we previously used a static variable for ethnic fractionalization, we also backfill to reduce missing values for countries that have at least one hief value.
+
+dat <- dat %>% 
+  group_by(ccode) %>% 
+  arrange(year) %>% 
+  mutate(efindex = na.locf(efindex, na.rm = FALSE, fromLast = TRUE)) %>% 
+  ungroup()
+
+#review missingness again - 445 left
+
+# dat %>%
+#   filter(is.na(efindex),year>=1945) %>%
+#   select(country, year, efindex) %>% 
+#   select(country) %>%
+#   arrange(country) %>% 
+#   unique()
+
+#there are 445 observations where efindex is still NA. Cameroon, Equatorial Guinea, France, Kosovo, India, Luxembourg, Maldives, Malta, Montenegro, Mozambique, Papua New Guinea, Surinam and South Sudan are missing from the HIEF data. 
+
+#We replace the missing values of EFindex with the static variable elf.ethnic, from Alasina et. al 2003: https://link.springer.com/article/10.1023/A:1024471506938
+
+#Note that for Kosovo and Maldives, there was also no elf.ethnic value so we filled this in with a value from this paper from 2012: https://www.econstor.eu/bitstream/10419/92997/1/720108012.pdf). Suriname = 0.733, Kosovo = 0.220, Maldives = 0.059, Luxembourg = 0.530, Malta = 0.042 
+
+dat <- dat %>% 
+  mutate(
+    efindex = ifelse(country == "Cameroon", 0.86, efindex), 
+    efindex = ifelse(country == "Equatorial Guinea",0.35,efindex), 
+    efindex = ifelse(country == "France",0.1,efindex), 
+    efindex = ifelse(country == "India",0.42,efindex), 
+    efindex = ifelse(country == "Montenegro",0.7,efindex),
+    efindex = ifelse(country == "Mozambique",0.69,efindex), 
+    efindex = ifelse(country == "Papua New Guinea",0.27,efindex), 
+    efindex = ifelse(country == "South Sudan",0.73,efindex), 
+    efindex = ifelse(country == "Surinam",0.73,efindex), 
+    efindex = ifelse(country == "Kosovo",0.22,efindex), 
+    efindex = ifelse(country == "Maldives",0.059,efindex), 
+    efindex = ifelse(country == "Malta",0.04,efindex), 
+    efindex = ifelse(country == "Luxembourg",0.53,efindex))
+
+
+#review missingness. There are now 0 missing values.
+# dat %>% 
+#   filter(is.na(efindex), year>=1945) %>% 
+#   select(country, year, efindex)
+
+```
+
+#EPR - clean data (discrimpop)
+```{r, eval = F}
+#discrimpop comes from the Ethnic Power Relations dataset which can be downloaded from the GROWup platform: https://growup.ethz.ch/rfe
+#To download, click "country-level data", then click "power access data"
+#It is currently available through 2020
+
+epr <- fread("input/epr-data.csv")
+
+#add ccodes to epr data
+
+epr <- epr %>% 
+  mutate(ccode = countrycode(countries_gwid, origin = "gwn", destination = "cown"))
+
+
+      diff <- setdiff(unique(dat$ccode),unique(epr$countries_gwid))
+
+epr %>% 
+  anti_join(dat, by = c("ccode")) %>% 
+  select(year, countryname, ccode)
+
+#Serbia and Democratic Republic of Vietnam could not be matched. All the rest are countries that are not includeed in ouor dataset.
+#We keep Serbia and Yugoslavia the same (345) while they switch to Serbia (340) in 2006. For Vietnam, the Democratic Republic of Vietnam should be code 816, while the Republic of Vietnam should be 817. Their dataset also codes Germany differently - They use GW code 260 for the German Federal Republic from 1949 to 2020, but we use COW code 255 for 1945 to present. For Yemen, we use code 678 for the Yemen Arab Republic from 1945 to 1989. Then we switch to 679 from 1990 to present. 
+
+epr <- epr %>% 
+  mutate(
+  ccode = ifelse(countryname == "Serbia", 345, ccode),
+  ccode = ifelse(countryname == "Vietnam, Democratic Republic of",816,ccode), 
+  ccode = ifelse(countryname == "Vietnam, Republic of", 817, ccode), 
+  ccode = ifelse(countryname == "Yemen (Arab Republic of Yemen)" & year <=1989, 678, ccode), 
+  ccode = ifelse(countryname == "Yemen (Arab Republic of Yemen)" & year >1989, 679, ccode))
+
+#Also, their dataset includes values for Serbia and Yugoslavia in 2006, so I drop the value for Yugoslavia (because otherwise it creates a duplicate in our dataset). 
+
+epr <- epr %>% 
+  filter(!(countryname == "Yugoslavia" & year == "2006"))
+
+#See which cowcodes don't match - all issues were resolved
+
+epr %>% 
+  anti_join(dat, by = c("ccode")) %>% 
+  select(countryname) %>% 
+  unique()
+ 
+#check duplicates - there are none
+epr %>% 
+     group_by(countryname, year) %>%
+     filter(n()>1)
+
+#limit to relevant columns
+epr <- epr %>% 
+  select(year, discrimpop,ccode)
+  
+#save epr data
+fwrite(epr, "input/epr-clean.csv") 
+```
+
+##merge in EPR data and resolve missingness
+```{r}
+#read in epr data
+epr <- fread("input/epr-clean.csv")
+
+#merge with dat using COW code and year
+dat <- dat %>% 
+  left_join(epr, by = c("ccode", "year"))
+
+#review missingness. There are 744 missing values. Many of these are generated because the dataset only covers 1946 - 2020, so we backfill/carry forward.
+
+dat %>% 
+  filter(is.na(discrimpop), year>=1945) %>% 
+  select(country, year, discrimpop)
+
+#I carry forward to reduce missingness, there are 72 country-years where discrimpop is still NA.
+dat <- dat %>% 
+  group_by(country) %>%  
+  arrange(year) %>% 
+  mutate(discrimpop = na.locf(discrimpop, na.rm = FALSE)) %>% 
+  ungroup() 
+
+dat %>% 
+  filter(is.na(discrimpop), year>=1945) %>% 
+  select(country, year, discrimpop)
+
+#We then backfill NAs using any available values.
+
+dat <- dat %>% 
+  group_by(ccode) %>% 
+  arrange(year) %>% 
+  mutate(
+    discrimpop = na.locf(discrimpop, na.rm = FALSE, fromLast = TRUE)) %>% 
+  ungroup()
+
+#review missingness after backfill. There are 0 missing values.
+
+# dat %>%
+#   filter(is.na(discrimpop), year>=1945) %>%
+#   select(country, year, discrimpop)
+
+```
+
+#State Department regional data
+Our data on regions reg.afr, reg.eap, reg.sca, reg.mna, reg.eur is an artifact of our previous datasets (not avail online anywhere as far as I know) so I have created a standalone spreadsheet that stores this information as of the 2023 update. These variables are static and unlikely to change unless a new country comes into existence or is added to our dataset (for example, this year we will need to ensure Cape Verde is coded correctly). Note also that for the 2023 update we were asked to make reg.afr the reference year, so we had to remove it and add the reg.na category. This was done at the modeling stage (not in the old data) so we need to add it here.
+```{r}
+reg_dat <- fread("input/reg-data.csv")
+
+#remove country before merge
+reg_dat <- reg_dat %>% 
+  select(-country)
+
+#merge
+
+dat <- dat %>% 
+  left_join(reg_dat, by = c("year","ccode"))
+
+#carry forward all values to 2024
+dat <- dat %>% 
+  arrange(country, year) %>% 
+  group_by(country) %>% 
+  mutate(reg.na = na.locf(reg.na, na.rm = FALSE),
+         reg.eap = na.locf(reg.eap, na.rm = FALSE),
+         reg.sca = na.locf(reg.sca, na.rm = FALSE),
+         reg.mna = na.locf(reg.mna, na.rm = FALSE),
+         reg.eur = na.locf(reg.eur, na.rm = FALSE)
+         ) %>% 
+  ungroup() 
+
+#check missingness. Only issue is Cape Verde because it was not in older versions of our dataset.
+
+reg_vars <- c("reg.na","reg.eap","reg.sca","reg.mna","reg.eur")
+
+# dat %>%
+#   filter(if_any(all_of(reg_vars), is.na) & year >= 1945) %>%
+#   select(country, year, all_of(reg_vars))
+
+#add coding for Cape Verde
+dat <- dat %>% 
+  mutate(reg.na = ifelse(country == "Cape Verde", 0,reg.na),
+         reg.eap = ifelse(country == "Cape Verde",0,reg.eap),
+         reg.sca = ifelse(country == "Cape Verde",0,reg.sca),
+         reg.mna = ifelse(country == "Cape Verde",0,reg.mna),
+         reg.eur = ifelse(country == "Cape Verde",0,reg.eur)
+         )
+
+#check missingness again. All resolved.
+# dat %>%
+#   filter(if_any(all_of(reg_vars), is.na) & year >= 1945) %>%
+#   select(country, year, all_of(reg_vars))
+
+```
+
+#ios.iccpr1 data
+Similar to the regional data, ios.iccpr1 is an artifact of our previous datasets so I have created a standalone spreadsheet that stores this information as of the 2023 update. You can also download the data online here: https://indicators.ohchr.org/
+Each year, need to download and check that no countries have newly ratified this. Morocco ratified in 2022 so this needs to be updated.
+If an new country is added (like Cape Verde in 2023 update), need to update.
+no new ratifications as of 2024. 
+```{r}
+iccpr_dat <- fread("input/iccpr-data.csv")
+
+#remove country before merge
+iccpr_dat <- iccpr_dat %>% 
+  select(-country)
+
+#merge
+dat <- dat %>% 
+  left_join(iccpr_dat, by = c("year","ccode"))
+
+#Update Cape Verde.Ratified in 2000.
+dat <- dat %>% 
+  mutate(ios.iccpr1 = ifelse(country == "Cape Verde" & year >=2000, 1,ios.iccpr1))
+
+# dat %>% 
+#   filter(country == "Cape Verde") %>% 
+#   select(year, ios.iccpr1)
+
+#carry forward all values to 2024
+dat <- dat %>% 
+  group_by(country) %>% 
+  arrange(year) %>% 
+  mutate(ios.iccpr1 = na.locf(ios.iccpr1, na.rm = FALSE)
+         ) %>% 
+  ungroup() 
+
+#check missingness. No issues.
+# dat %>%
+#   filter(is.na(ios.iccpr1) & year >= 1945) %>%
+#   select(country, year, ios.iccpr1)
+
+```
+#battledeaths - Update data
+The following code reads in the UCDP data (https://ucdp.uu.se/downloads/) and changes country names to match. 
+Below, I sum the number of battledeaths for each country, and merge this onto dat. We currently use the dyadic version of UCDP Battle-Related Deaths Dataset version 25.1. For the 2023 update, we tried adding in the "high" and "low" estimates for battledeaths to test these in the model, but didn't make much difference so I am not including.
+
+```{r, eval = F}
+# read in UCDP data - using latest version (v25)
+  ucdp <- fread("input/BattleDeaths_v25_1.csv")
+
+# making sure we have the same variables as in 18.1 version. 
+# colnames for 18.1 are uppercase, use tolower when checking
+
+  colnames(ucdp) <- gsub("_", "", colnames(ucdp))
+
+# limit to conflict type >= 3
+  
+  ucdp <- ucdp[typeofconflict >= 3]
+
+# change country names to match
+  
+  diff_loc <- setdiff(unique(ucdp$locationinc), unique(dat$country))
+  
+  # drops the locations that involve multiple countries - as of this update there are none
+  
+  diff_loc <- diff_loc[grepl(", ", diff_loc) == F]
+  
+  # change names to match what we use
+    
+    ucdp$locationinc[ucdp$locationinc=="Burkina Faso"] = "Burkina Faso (Upper Volta)"
+    ucdp$locationinc[ucdp$locationinc=="Yemen (North Yemen)"] = "Yemen"
+    ucdp$locationinc[ucdp$locationinc=="DR Congo (Zaire)"] = "Congo, Democratic Republic of (Zaire)"
+    ucdp$locationinc[ucdp$locationinc=="Turkey"] = "Turkey (Ottoman Empire)"
+    ucdp$locationinc[ucdp$locationinc=="Serbia (Yugoslavia)"] = "Serbia"
+    ucdp$locationinc[ucdp$locationinc=="Ivory Coast"] = "Cote D’Ivoire"
+    ucdp$locationinc[ucdp$locationinc=="Tanzania"] = "Tanzania/Tanganyika"
+    ucdp$locationinc[ucdp$locationinc=="Sri Lanka"] = "Sri Lanka (Ceylon)"
+    ucdp$locationinc[ucdp$locationinc=="Romania"] = "Rumania"
+    ucdp$locationinc[ucdp$locationinc=="North Macedonia"] = "Macedonia (Former Yugoslav Republic of)"
+    ucdp$locationinc[ucdp$locationinc=="Iran"] = "Iran (Persia)"
+    
+    
+    if(length(setdiff(unique(ucdp$locationinc), 
+                      unique(dat$country)))>0){
+      stop("Different country names")}
+    
+    
+# group by year/country and sum battledeaths best, high and low
+  
+  bd <- ucdp[, .("battledeaths" = sum(bdbest),
+               "battledeaths_high" = sum(bdhigh),
+               "battledeaths_low" = sum(bdlow)), 
+           by = c("locationinc", "year")]
+  
+#rename "locationinc" for easier merging
+  bd <- bd %>% 
+    rename(country = locationinc)
+  
+  
+  
+# save battledeath data
+  
+  fwrite(bd, "input/battledeaths.csv")
+```
+
+##merge in battledeaths
+```{r}
+# read in battledeaths data
+
+  bd <- fread("input/battledeaths.csv")
+
+# merge battledeaths into main data
+
+dat <- dat %>% 
+  left_join(bd, by = c("country","year"))
+
+  
+# fill in zeroes and update logged variables
+  
+  setDT(dat)
+  
+  dat[, battledeaths := ifelse(is.na(battledeaths), 0, battledeaths)]
+ # dat[, battledeaths_high := ifelse(is.na(battledeaths_high), 0, battledeaths_high)]
+ #  dat[, battledeaths_low := ifelse(is.na(battledeaths_low), 0, battledeaths_low)]
+  dat[, battledeaths.log2 := log2(battledeaths + 1)]
+#  dat[, battledeaths.high.ln2 := log2(battledeaths_high + 1)]
+ # dat[, battledeaths.low.ln2 := log2(battledeaths_low + 1)]
+  
+#check missingness. No issues.
+  
+  # dat %>%
+  # filter(is.na(battledeaths) & year >= 1945) %>%
+  # select(country, year, battledeaths)
+  
+```
+
+# Coup Attempts
+This code reads in the most updated version of the Powell and Thyne data which is posted on their website. It selects coups in the years to be updated. The P&T data starts in 1950, so we keep the Monty data for coups that occurred from 1945-1949.
+
+##Pull in new coup data
+```{r, eval = F}
+# pull coup data from powell and thyne website
+
+  new_coups <- as.data.table(read.delim("http://www.uky.edu/~clthyn2/coup_data/powell_thyne_coups_final.txt"))
+
+#double check that it has been updated for the latest year. It has.
+new_coups %>% 
+  filter(year == 2024)
+
+# where coup == 2 it was a successful coup
+# where coup == 1 it was a failed coup
+  
+  new_coups[, cou.s.d := ifelse(coup == 2, 1, 0)]
+  new_coups[, cou.f.d := ifelse(coup == 1, 1, 0)]
+  
+# check ccodes
+  diff_cowcodes <- setdiff(unique(new_coups$ccode), unique(dat$ccode))
+  print(diff_cowcodes)
+  
+    #There are 4 mismatches: 54 (Dominica),  55 (Grenada),  403 (Sao Tome and Principe), 591 (Seychelles). None included in our data.
+  
+
+ # create cou.any variable (1 if there was either a failed or successful coup)
+  
+ new_coups <- new_coups %>% 
+   mutate(cou.any = ifelse(cou.s.d>0 | cou.f.d>0, 1, 0))
+ 
+ #simplify vars
+ new_coups <- new_coups %>% 
+   select(ccode,country,year,cou.any)
+ 
+ #check for duplicates - this happens when there was more than one coup attempt in a year
+ new_coups %>% 
+     group_by(ccode,year) %>%
+     filter(n()>1)
+ 
+ #remove duplicates
+ new_coups <- distinct(new_coups)
+  
+ # save new coup data
+  
+  fwrite(new_coups, "input/new-coups.csv")
+
+```
+
+##combine old and new coup data
+```{r, eval = F}
+#Read in spreadsheet from 2023 data for coups from 1945-1949 (this comes from the Center for Systemic Peace (Monty) data that we only use for these years). 
+old_coups <- fread("input/old-coups.csv")
+new_coups <- fread("input/new-coups.csv")
+
+#combine
+coup_dat <- bind_rows(old_coups,new_coups) %>% 
+  arrange(year)
+
+#save coup dat
+fwrite(coup_dat,"input/all-coups.csv")
+
+```
+
+##merge coup data with dat
+```{r}
+coup_dat <- fread("input/all-coups.csv")
+
+#remove country before merge
+coup_dat <- coup_dat %>% 
+  select(-country)
+
+#merge with dat
+
+dat <- dat %>% 
+  left_join(coup_dat, by = c("ccode","year"))
+
+#fill in with zeroes
+dat <- dat %>% 
+  mutate(cou.any = ifelse(is.na(cou.any),0,cou.any))
+  
+```
+## Coup in the last 5 years
+For countries that are created as a result of a coup, we want to ensure that our "coup.try.5yr" indicator shows that they had a coup in the first year of existence, though these are typically not tracked in the Powell & Tyne data. Therefore I turn coup.try.5yr on manually for these countries. This applies to Gabon (coup in 1964) and Djibouti (coup in 2000).
+
+```{r}
+# create a variable for the last year when an ccode had a coup
+
+dat <- dat %>% 
+  mutate(last_coup_yr = ifelse(cou.any ==1,year,NA))
+
+
+# update last_coup_yr for coup-created countries
+dat <- dat %>% 
+  mutate(last_coup_yr = ifelse(country == "Gabon" & year %in% c(1964:1969),1964,last_coup_yr),
+         last_coup_yr = ifelse(country == "Djibouti" & year %in% c(2000:2005),2000,last_coup_yr))
+
+#carry forward the last coup year until there is a new value, fill in years w/ no coups
+
+dat <- dat %>%
+  group_by(ccode) %>%
+  arrange(year) %>% 
+  mutate(last_coup_yr = na.locf(last_coup_yr, fromLast = FALSE, na.rm = FALSE),
+         last_coup_yr = if_else(is.na(last_coup_yr), -Inf, last_coup_yr)) %>%
+  ungroup()
+  
+# create variable for whether there was a coup in the last 5 years
+
+dat <- dat %>% 
+  mutate(coup.try.5yr = as.double((year - last_coup_yr) <= 4))
+
+#remove extra coup vars for simplicity
+
+dat <- dat %>% 
+  select(-last_coup_yr,-cou.any)
+
+```
+
+#includesnonstate 
+```{r}
+#includesnonstate is a dummy variable that is 1 after 1988.
+
+dat <- dat %>% 
+  mutate(includesnonstate = ifelse(year>=1989,1,0))
+
+```
+
+#year_sq
+```{r}
+dat <- dat %>% 
+  mutate(year_sq = year^2)
+
+```
+
+#countryage_new_ln
+changed in 2024 to reflect independence year instead of year country enters dataset
+```{r}
+dat <- dat %>% 
+  group_by(country) %>% 
+  mutate(countryage_new = year - independence_year,  #calculate country age
+        countryage.new.log2 = log2(countryage_new+1)) %>% 
+  ungroup()
+```
+
+
+#mean_mk_onset
+average onsets since 1960, will be interacted with "years_in_dataset", the number of years country has been in data since 1960
+
+```{r}
+dat <- dat %>% 
+  arrange(country,year) %>% 
+  group_by(country) %>% 
+  mutate(cumulative_sum = cumsum(mk_onset),
+         years_in_dataset = ifelse(datastartyear <= 1960, (year-1960 +1), (year - datastartyear + 1)),
+         mean_mk_onset = ifelse(years_in_dataset >= 1, cumulative_sum / years_in_dataset, 0),
+         mean_mk_onset_log2 = (log2(mean_mk_onset +1))) %>% 
+  ungroup()
+
+#create interaction term
+dat <- dat %>% 
+  mutate(mean_mk_onset_interaction = mean_mk_onset*years_in_dataset)
+
+# dat %>% 
+#   filter(year == 2024) %>% 
+#   filter(country %in% c("South Sudan","India","Canada","Myanmar (Burma)","Angola")) %>% 
+#   select(year, country, years_in_dataset,cumulative_sum,mean_mk_onset, mean_mk_onset_interaction)
+
+```
+
+#newcountry
+```{r}
+dat <- dat %>% 
+  mutate(newcountry = ifelse(countryage_new<=2,1,0))
+```
+
+
+#mk_onset_1, mk_onset_2, mk_onset_1or2 and mk_onset_prev_year
+```{r}
+dat <- dat %>%
+  arrange(country, year) %>%
+  group_by(country) %>%
+  mutate(mk_onset_1 = lead(mk_onset, order_by = year)) %>%
+  mutate(mk_onset_2 = lead(mk_onset, n = 2, order_by = year)) %>% 
+  mutate(mk_onset_prev_year = lag(mk_onset)) %>% 
+  ungroup()  
+
+# Create the "1-2 year window in a way that doesn't go NA easily. 
+dat$mk_onset_1or2 = 0
+dat$mk_onset_1or2[dat$mk_onset_1==1] = 1
+dat$mk_onset_1or2[dat$mk_onset_2==1] = 1
+
+#update mk_onset_prev_year when it is the country's and last first year in the dataset (otherwise turns to NA)
+
+dat <- dat %>% 
+  mutate(mk_onset_prev_year = ifelse(year == datastartyear, 0,mk_onset_prev_year))
+```
+
+#mk_ever
+```{r}
+dat <- dat %>% 
+  mutate(mk_ever = ifelse(mk_responsible_ever==1 | mk_location_ever==1,1,0))
+```
+
+#mk_ongoing_count_log
+```{r}
+dat <- dat %>%
+  mutate(mk_ongoing_count_log2 = log2(mk_ongoing_count+1))
+```
+
+#Infant Mortality
+As of 2024 update we changed our primary source to the UN population data. Available for bulk download as CSV here: https://population.un.org/wpp/
+go to download data files, then choose demographic indicators - compact
+Using same source as of 2025 (hard to tell if it was updated because they project data into the future)
+
+##clean data
+```{r, eval = F}
+un_imr <- fread("input/WPP2024_Demographic_Indicators_Medium.csv")
+
+#reduce to relevant columns
+un_imr <- un_imr %>% 
+  select(ISO3_code,Time,IMR)
+
+#rename vars
+un_imr <- un_imr %>% 
+  rename(year = Time,
+         iso3c = ISO3_code,
+         un_imr = IMR)
+
+#add cc codes
+
+un_imr <- un_imr %>% 
+  left_join(cow_iso_mapping, by = c("iso3c" = "iso3"))
+
+#reduce to relevant time frame
+
+un_imr <- un_imr %>% 
+  filter(year>=1934,year<=2024)
+
+#check for differences
+      diff <- setdiff(unique(dat$ccode),unique(un_imr$ccode))
+      
+#differences include Czechoslovakia (315), East Germany, Kosovo, Serbia, Republic of Vietnam, Arab Republic of Yemen, and People's Republic of Yemen 
+      
+      # UN uses iso3c code CZE for Czechoslovakia/Czech Republic froom 1950 - present, and ISO3 code: SVK for Slovakia from 1950 - present. We use ccode 315 for Czechoslovakia from 1934 - 1992, then ccode 316 from 1993 - present for Czech Republic, and ccode 317 from 1993 - present for Slovakia.
+        
+      un_imr <- un_imr %>% 
+          mutate(ccode = ifelse(iso3c == "CZE" & year <1993, 315,ccode),
+                 ccode = ifelse(iso3c == "CZE" & year >=1993, 316, ccode),
+                 ccode = ifelse(iso3c == "SVK" & year >=1993, 317,ccode))
+      
+       # UN includes Serbia with iso3c as SRB from 1950 - present, does not include former Yugoslavia. Therefore we need to recode Serbia as ccode 345
+        
+        un_imr <- un_imr %>% 
+          mutate(ccode = ifelse(iso3c == "SRB", 345,ccode))
+        
+ # UN includes Kosovo with the iso3c XKX. We include Kosovo with ccode 347 from 2008 - present. 
+         
+         un_imr <- un_imr %>% 
+           mutate(ccode = ifelse(iso3c == "XKX" & year >=2008, 347,ccode))
+    
+
+#UN uses iso3c "VNM" for "Viet Nam" which represents North Vietnam and unified vietnam. South Vietnam is not included. We use ccode 817 for "Vietnam, Republic of" from 1954 - 1975, and ccode 816 for "Vietnam, Democratic Republic of" from 1954 - 2023. Nothing we can do about exclusion of South Vietnam.
+         
+#UN uses iso3c "YEM" for "Yemen, Rep." for 1950 - present, including unified Yemen and People's Democratic Republic of Yemen (South Yemen). Yemen Arab Republic is not included. We use (i) 678/Yemen (North) until 1989, (ii) 680/South Yemen 1967-1989, and (iii) Yemen (679) 1990 onward (formerly Yemen (unified) in the 2023 update but EWP asked to change). Need to fix the ccode mapping so that it is 680 from 1967 - 1989.
+         
+         un_imr <- un_imr %>% 
+           mutate(ccode = ifelse(iso3c == "YEM" & year >= 1967 & year <= 1989, 680,ccode),
+                  ccode = ifelse(iso3c == "YEM" & year>1989, 679,ccode))
+
+#that leaves East Germany, Republic of Vietnam, and Arab Republic of Yemen, which are not included in the UN dataset, and anything that did nnot have an iso3 code, which we can remove.
+         
+  un_imr <-  un_imr %>% 
+           filter(iso3c != "")
+         
+diff <- setdiff(unique(dat$ccode),unique(un_imr$ccode))
+               
+#save out
+fwrite(un_imr,"input/un_imr_clean.csv")
+
+```
+
+##merge
+```{r}
+#import
+un_imr <- fread("input/un_imr_clean.csv")
+
+#remove extra columns
+
+un_imr <- un_imr %>% 
+  select(-iso3c)
+
+#merge in
+
+dat <- dat %>% 
+  left_join(un_imr, by = c("ccode","year"))
+
+
+#check correlation - .99
+
+#cor(as.numeric(dat$wdi.imrate.new), as.numeric(dat$un_imr), use = "complete.obs")
+
+# dat %>% 
+#   filter(year >= 1960, is.na(un_imr))
+
+#only 76 missing! yay!
+
+#create square root version 
+
+dat  = dat %>% 
+  mutate(un_imr_sqrt = sqrt(un_imr))
+
+```
+
+#Final Missingness Resolution
+All model vars are now merged in. Now we check and resolve missingness.
+This section fills in some WDI variables by creating an adjusted version of the relevant Maddison variable. This significantly cuts down on missingness. We tested Vdem, Maddison and PWT to decide which proxy to use, and based on the below analysis decided Maddison was the best option for all relevant vars.
+
+##create most recent vars
+Here I create "most recent __" variables so that we can see how things were carried forward in future years
+```{r}
+library(tidyr)
+
+#check missingness. There are 794 missing for gdp pc growthh and 76 for popsize. 
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(wdi.gdppcgrow.new))
+
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(wdi.popsize.log2))
+
+#create most recent year variable
+
+dat <- dat %>%
+  arrange(country, year) %>%  # Ensure data is ordered by country and year
+  group_by(country) %>%
+  mutate(most_recent_wdi_gdppcgrowth = if_else(!is.na(wdi.gdppcgrow.new), year, NA_integer_),
+         most_recent_wdi_popsize_log2 = if_else(!is.na(wdi.popsize.log2), year, NA_integer_)) %>% 
+  fill(most_recent_wdi_gdppcgrowth, .direction = "down") %>% 
+  fill(most_recent_wdi_popsize_log2, .direction = "down") %>%
+  ungroup()
+
+dat %>% 
+  filter(is.na(wdi.gdppcgrow.new) & year == 2024) %>% 
+  select(country, most_recent_wdi_gdppcgrowth)
+
+# dat %>% 
+#   filter(country == "Korea, People's Republic of") %>% 
+#   select(year,wdi.gdppcgrow.new, mad_gdppcgrowth)
+
+#North Korea will be an issue if we carry forward before using maddison to fill in. Therefore I will use Maddison first, then carry forward.
+
+# dat %>% 
+#   filter(is.na(wdi.popsize.log2) & year == 2024) %>% 
+#   select(country, most_recent_wdi_popsize_log2)
+
+```
+##function to create WDI proxy 
+This function inserts a regression adjusted version of a proxy to fill in gaps in the WDI data. The input "new_var_name" can be changed to create a new simplified name instead of using "combined". 
+```{r}
+library(rlang)
+library(dplyr)
+
+make.combined <- function(wdi_var, proxy1, new_var_name) {
+  # Calculate the number of missing values before imputation
+  na_old <- sum(is.na(dat[[wdi_var]]))
+  
+  # First Proxy Imputation
+  data_subset1 <- dat %>%
+    filter(!is.na(!!sym(proxy1)))
+  
+  if (nrow(data_subset1) == 0) {
+    cat(paste0("No rows to impute for variable '", wdi_var, "'. All '", proxy1, "' values are missing.\n"))
+    return(NULL)
+  }
+  
+  # Impute with the first proxy
+  lm_adjust1 <- lm(as.formula(paste0(wdi_var, " ~ ", proxy1)), data = data_subset1)
+
+  # Create the new variable with the specified name
+  dat <- dat %>%
+    mutate(!!sym(new_var_name) := if_else(is.na(!!sym(wdi_var)) & !is.na(!!sym(proxy1)), 
+                                          as.numeric(predict(lm_adjust1, newdata = .)), 
+                                          !!sym(wdi_var)))
+  
+  # Calculate remaining missing values after the first proxy imputation
+  na_new <- sum(is.na(dat[[new_var_name]]))
+  cat(paste0("After using the proxy '", proxy1, "', ", na_new, " missing values remain.\n"))
+  
+  return(dat)  # Return the updated data frame
+}
+
+```
+
+##create combined variable for popsize
+```{r}
+#first make sure all on same scale. looks good.
+dat %>% 
+  filter(!is.na(wdi.popsize.log2 & mad_popsize.log2)) %>% 
+  select(wdi.popsize.log2, mad_popsize.log2)
+
+#check how many are missing before - 76
+
+ dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(wdi.popsize.log2))
+
+#create combined version
+
+dat <- make.combined(wdi_var = "wdi.popsize.log2", proxy1 = "mad_popsize.log2", new_var_name = "popsize.log2")
+
+#check how many are missing after - 46
+
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(popsize.log2))
+
+#Note - no need to carry forward because the only remaining missingness is for countries that have no values in the series (East Germany and Republic of Vietnam)  - these will be dropped
+
+```
+
+##create combined variable for gdp pc growth
+```{r}
+#make sure all on same scale. looks good when you look at the summary (some differences by row)
+dat %>% 
+  filter(!is.na(wdi.gdppcgrow.new & mad_gdppcgrowth)) %>% 
+ select(wdi.gdppcgrow.new, mad_gdppcgrowth)
+
+summary(dat %>% select(wdi.gdppcgrow.new, mad_gdppcgrowth))
+
+#check how many are missing before - 794
+
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(wdi.gdppcgrow.new))
+
+#make combined version
+ dat <- make.combined(wdi_var = "wdi.gdppcgrow.new", proxy1 = "mad_gdppcgrowth", new_var_name = "gdppcgrowth")
+ 
+ #check how many are missing after - 165
+
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(gdppcgrowth))
+ 
+#carry forward
+
+  library(zoo)
+  
+dat <- dat %>%
+  arrange(ccode, year) %>%
+  group_by(ccode) %>%
+  mutate(gdppcgrowth = na.locf(gdppcgrowth, na.rm = FALSE)) %>%
+  ungroup()
+
+#check how many are missing after - 125
+
+dat %>% 
+  filter(year >=1960) %>% 
+  filter(is.na(gdppcgrowth))
+
+#check how many are missing after in 2024 - 0
+
+dat %>% 
+  filter(year == 2024) %>% 
+  filter(is.na(gdppcgrowth))
+```
+
+#final missingness check
+```{r}
+#predictor names for vars in the model
+predictornames <- c("year", "widetargeting", "narrowtargeting", "v2csgender_binary", "v2mecenefm_binary", "partyban.new.0", "partyban.new.1", "partyban.new.2", "minorityrule", "judicialreform", "religiousfreedom", "pol_killing_approved", "freediscussion", "social_inequality", "even_civilrights", "repress_civilsoc", "social_power_dist", "ses_power_dist", "popsize.log2", "gdppcgrowth", "un_imr_sqrt", "efindex", "discrimpop", "reg.na", "reg.eap", "reg.sca", "reg.mna","reg.eur", "ios.iccpr1",  "battledeaths.log2", "coup.try.5yr", "mk_ongoing_count_log2", "mean_mk_onset_interaction", "mk_onset_prev_year", "newcountry", "mk_ever", "year_sq", "countryage.new.log2", "includesnonstate","mk_onset_1or2","mk_onset","ccode")
+
+# look for missingness for all predictor variables
+
+  dat.check <- subset(dat,year >=1960,select = c("country","year", predictornames))
+
+# for each year, count the number of NAs for each variable
+# select variables with positive NA counts
+
+# Calculate the number of missing values for each column for each year in the data frame
+comp <- lapply(unique(dat.check$year), 
+               function(y) apply(dat.check[dat.check$year == y, ], 
+                                 2, function(x) sum(is.na(x))))
+
+# Flatten the list to create a vector of missing value counts
+na.count <- unlist(comp)
+
+# Create a vector of years that matches the length of na.count
+years <- rep(unique(dat.check$year), each = ncol(dat.check))
+
+# Create a data table to summarize the missing value counts
+check <- data.table(na.count, years, var = rep(names(dat.check), length(unique(dat.check$year))))
+
+# Filter the data table to only include rows with missing values
+check <- check[na.count > 0]
+
+
+# visualize missingness
+
+library(ggplot2)
+
+     (missing1 <- ggplot(check) + 
+      geom_bar(aes(y = na.count, x = var, fill = factor(years)), 
+               stat = "identity")+ 
+      theme(axis.text.x = element_text(angle = 45, hjust = 1)) + 
+      labs(x = "Missing Variables", y = "Number of Observations Missing", 
+           fill = "Year", 
+           title = "Number of Countries with Missing Values"))
+
+#overall missingness - nothing too concerning
+dat %>%
+  filter(if_any(all_of(predictornames), is.na)) %>% 
+  filter(year>=1960)
+
+#check missingness in 2024 - none
+
+dat %>%
+  filter(if_any(all_of(predictornames), is.na)) %>% 
+  filter(year == 2024)
+
+```
+
+
+#Save out
+```{r}
+#full version
+fwrite(dat,"2024-alldata-2025-09-03.csv")
+
+#just predictor vars and 1960 onward
+preparedpredictors <- dat %>% 
+  select(ewp_name,year,all_of(predictornames),mk_onset_1,mk_onset_2) %>% 
+  filter(year>=1960)
+
+fwrite(preparedpredictors,"prepared2024predictors-2025-09-03.csv")
+```
+
+
+#Let's do some tests!
+
+```{r, eval = F}
+#check ranges 
+summary(dat) # looks good
+summary(preparedpredictors) # looks good
+
+#count missingness
+colSums(is.na(preparedpredictors))
+
+#plot missingness (again) - no surprises
+
+#install.packages("naniar")
+library("naniar")
+
+gg_miss_var(preparedpredictors) +
+  labs(title = "Missing Data by Variable", y = "Number of Missing Values")
+
+#check for duplicates
+dat %>%
+  group_by(across(everything())) %>%  # Group by all columns
+  filter(n() > 1) %>%  # Keep only groups with more than one row
+  ungroup() 
+
+#View(table(preparedpredictors$ewp_name, preparedpredictors$year))
+
+str(preparedpredictors)
+```
+
+#spot checking big movers - come to this after modeling
+```{r, eval = F}
+dat <- fread("prepared2023predictors-2024-09-11.csv")
+
+#choose big movers - Chad, China, South Sudan, Nepal
+
+#chad - looks good
+dat %>% 
+  filter(ewp_name == "Chad", year >2019) %>% 
+  mutate(tradeshare_unlogged = 2^tradeshare.log2.combined) %>% 
+  select(ewp_name, year, gdppcgrowth.combined, tradeshare_unlogged, even_civilrights)
+
+#china - looks good
+dat %>% 
+  filter(ewp_name == "China", year >2019) %>% 
+  mutate(tradeshare_unlogged = 2^tradeshare.log2.combined) %>% 
+  select(ewp_name, year, gdppcgrowth.combined, tradeshare_unlogged, even_civilrights)
+
+#South sudan - latest gdp pc growth and tradeshare vars from world bank were from 2015 - problem with tradeshare
+dat %>% 
+  filter(ewp_name == "South Sudan", year >2013) %>% 
+  mutate(tradeshare_unlogged = 2^tradeshare.log2.combined) %>% 
+  select(ewp_name, year, gdppcgrowth.combined, tradeshare_unlogged, even_civilrights)
+
+#Nepal - looks good
+dat %>% 
+  filter(ewp_name == "Nepal", year >2019) %>% 
+  mutate(tradeshare_unlogged = 2^tradeshare.log2.combined) %>% 
+  select(ewp_name, year, gdppcgrowth.combined, tradeshare_unlogged, even_civilrights)
+
+```
+
+
+

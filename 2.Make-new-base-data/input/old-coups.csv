@@ -1,0 +1,351 @@
+ccode,country,year,cou.any
+700,Afghanistan,1945,0
+339,Albania,1945,0
+160,Argentina,1945,0
+900,Australia,1945,0
+305,Austria,1945,0
+211,Belgium,1945,0
+145,Bolivia,1945,0
+140,Brazil,1945,0
+355,Bulgaria,1945,0
+20,Canada,1945,0
+155,Chile,1945,0
+710,China,1945,0
+100,Colombia,1945,0
+94,Costa Rica,1945,0
+40,Cuba,1945,0
+315,Czechoslovakia,1945,0
+390,Denmark,1945,0
+42,Dominican Republic,1945,0
+130,Ecuador,1945,0
+92,El Salvador,1945,0
+530,Ethiopia,1945,0
+375,Finland,1945,0
+220,France,1945,0
+255,Germany,1945,0
+265,Germany (East),1945,0
+350,Greece,1945,0
+90,Guatemala,1945,0
+41,Haiti,1945,0
+91,Honduras,1945,0
+310,Hungary,1945,0
+630,Iran (Persia),1945,0
+645,Iraq,1945,0
+205,Ireland,1945,0
+325,Italy/Sardinia,1945,0
+740,Japan,1945,0
+660,Lebanon,1945,0
+450,Liberia,1945,0
+70,Mexico,1945,0
+712,Mongolia,1945,0
+790,Nepal,1945,0
+210,Netherlands,1945,0
+920,New Zealand,1945,0
+93,Nicaragua,1945,0
+385,Norway,1945,0
+95,Panama,1945,0
+150,Paraguay,1945,0
+135,Peru,1945,0
+840,Philippines,1945,0
+290,Poland,1945,0
+235,Portugal,1945,0
+360,Rumania,1945,0
+365,Russia (Soviet Union),1945,0
+670,Saudi Arabia,1945,0
+560,South Africa,1945,0
+230,Spain,1945,0
+380,Sweden,1945,0
+225,Switzerland,1945,0
+800,Thailand,1945,0
+640,Turkey (Ottoman Empire),1945,0
+200,United Kingdom,1945,0
+2,United States of America,1945,0
+165,Uruguay,1945,0
+101,Venezuela,1945,0
+678,Yemen (Arab Republic of Yemen),1945,0
+345,Yugoslavia,1945,0
+700,Afghanistan,1946,0
+339,Albania,1946,0
+160,Argentina,1946,0
+900,Australia,1946,0
+305,Austria,1946,0
+211,Belgium,1946,0
+145,Bolivia,1946,0
+140,Brazil,1946,0
+355,Bulgaria,1946,0
+20,Canada,1946,0
+155,Chile,1946,0
+710,China,1946,0
+100,Colombia,1946,0
+94,Costa Rica,1946,0
+40,Cuba,1946,0
+315,Czechoslovakia,1946,0
+390,Denmark,1946,0
+42,Dominican Republic,1946,0
+130,Ecuador,1946,0
+92,El Salvador,1946,0
+530,Ethiopia,1946,0
+375,Finland,1946,0
+220,France,1946,0
+255,Germany,1946,0
+265,Germany (East),1946,0
+350,Greece,1946,0
+90,Guatemala,1946,0
+41,Haiti,1946,1
+91,Honduras,1946,0
+310,Hungary,1946,0
+630,Iran (Persia),1946,0
+645,Iraq,1946,0
+205,Ireland,1946,0
+325,Italy/Sardinia,1946,0
+740,Japan,1946,0
+660,Lebanon,1946,0
+450,Liberia,1946,0
+70,Mexico,1946,0
+712,Mongolia,1946,0
+790,Nepal,1946,0
+210,Netherlands,1946,0
+920,New Zealand,1946,0
+93,Nicaragua,1946,0
+385,Norway,1946,0
+95,Panama,1946,0
+150,Paraguay,1946,0
+135,Peru,1946,0
+840,Philippines,1946,0
+290,Poland,1946,0
+235,Portugal,1946,1
+360,Rumania,1946,0
+365,Russia (Soviet Union),1946,0
+670,Saudi Arabia,1946,0
+560,South Africa,1946,0
+230,Spain,1946,0
+380,Sweden,1946,0
+225,Switzerland,1946,0
+652,Syria,1946,0
+800,Thailand,1946,0
+640,Turkey (Ottoman Empire),1946,0
+200,United Kingdom,1946,0
+2,United States of America,1946,0
+165,Uruguay,1946,0
+101,Venezuela,1946,0
+678,Yemen (Arab Republic of Yemen),1946,0
+345,Yugoslavia,1946,0
+700,Afghanistan,1947,0
+339,Albania,1947,0
+160,Argentina,1947,0
+900,Australia,1947,0
+305,Austria,1947,0
+211,Belgium,1947,0
+145,Bolivia,1947,0
+140,Brazil,1947,0
+355,Bulgaria,1947,0
+20,Canada,1947,0
+155,Chile,1947,0
+710,China,1947,0
+100,Colombia,1947,0
+94,Costa Rica,1947,0
+40,Cuba,1947,0
+315,Czechoslovakia,1947,0
+390,Denmark,1947,0
+42,Dominican Republic,1947,0
+130,Ecuador,1947,1
+92,El Salvador,1947,0
+530,Ethiopia,1947,0
+375,Finland,1947,0
+220,France,1947,0
+255,Germany,1947,0
+265,Germany (East),1947,0
+350,Greece,1947,0
+90,Guatemala,1947,0
+41,Haiti,1947,0
+91,Honduras,1947,0
+310,Hungary,1947,0
+750,India,1947,0
+630,Iran (Persia),1947,0
+645,Iraq,1947,0
+205,Ireland,1947,0
+325,Italy/Sardinia,1947,0
+740,Japan,1947,0
+660,Lebanon,1947,0
+450,Liberia,1947,0
+70,Mexico,1947,0
+712,Mongolia,1947,0
+790,Nepal,1947,0
+210,Netherlands,1947,0
+920,New Zealand,1947,0
+93,Nicaragua,1947,1
+385,Norway,1947,0
+770,Pakistan,1947,0
+95,Panama,1947,0
+150,Paraguay,1947,0
+135,Peru,1947,0
+840,Philippines,1947,0
+290,Poland,1947,0
+235,Portugal,1947,0
+360,Rumania,1947,0
+365,Russia (Soviet Union),1947,0
+670,Saudi Arabia,1947,0
+560,South Africa,1947,0
+230,Spain,1947,0
+380,Sweden,1947,0
+225,Switzerland,1947,0
+652,Syria,1947,0
+800,Thailand,1947,1
+640,Turkey (Ottoman Empire),1947,0
+200,United Kingdom,1947,0
+2,United States of America,1947,0
+165,Uruguay,1947,0
+101,Venezuela,1947,0
+678,Yemen (Arab Republic of Yemen),1947,0
+345,Yugoslavia,1947,0
+700,Afghanistan,1948,0
+339,Albania,1948,0
+160,Argentina,1948,0
+900,Australia,1948,0
+305,Austria,1948,0
+211,Belgium,1948,0
+145,Bolivia,1948,0
+140,Brazil,1948,0
+355,Bulgaria,1948,0
+20,Canada,1948,0
+155,Chile,1948,0
+710,China,1948,0
+100,Colombia,1948,0
+94,Costa Rica,1948,1
+40,Cuba,1948,0
+315,Czechoslovakia,1948,1
+390,Denmark,1948,0
+42,Dominican Republic,1948,0
+130,Ecuador,1948,0
+92,El Salvador,1948,1
+530,Ethiopia,1948,0
+375,Finland,1948,0
+220,France,1948,0
+255,Germany,1948,0
+265,Germany (East),1948,0
+350,Greece,1948,0
+90,Guatemala,1948,0
+41,Haiti,1948,0
+91,Honduras,1948,0
+310,Hungary,1948,0
+750,India,1948,0
+630,Iran (Persia),1948,0
+645,Iraq,1948,0
+205,Ireland,1948,0
+666,Israel,1948,0
+325,Italy/Sardinia,1948,0
+740,Japan,1948,0
+663,Jordan,1948,0
+731,"Korea, People's Republic of",1948,0
+732,"Korea, Republic of",1948,0
+660,Lebanon,1948,0
+450,Liberia,1948,0
+70,Mexico,1948,0
+712,Mongolia,1948,0
+775,Myanmar (Burma),1948,1
+790,Nepal,1948,0
+210,Netherlands,1948,0
+920,New Zealand,1948,0
+93,Nicaragua,1948,0
+385,Norway,1948,0
+770,Pakistan,1948,0
+95,Panama,1948,0
+150,Paraguay,1948,1
+135,Peru,1948,1
+840,Philippines,1948,0
+290,Poland,1948,0
+235,Portugal,1948,0
+360,Rumania,1948,0
+365,Russia (Soviet Union),1948,0
+670,Saudi Arabia,1948,0
+560,South Africa,1948,0
+230,Spain,1948,0
+780,Sri Lanka (Ceylon),1948,0
+380,Sweden,1948,0
+225,Switzerland,1948,0
+652,Syria,1948,0
+800,Thailand,1948,0
+640,Turkey (Ottoman Empire),1948,0
+200,United Kingdom,1948,0
+2,United States of America,1948,0
+165,Uruguay,1948,0
+101,Venezuela,1948,1
+678,Yemen (Arab Republic of Yemen),1948,0
+345,Yugoslavia,1948,0
+700,Afghanistan,1949,0
+339,Albania,1949,0
+160,Argentina,1949,0
+900,Australia,1949,0
+305,Austria,1949,0
+211,Belgium,1949,0
+145,Bolivia,1949,0
+140,Brazil,1949,0
+355,Bulgaria,1949,0
+20,Canada,1949,0
+155,Chile,1949,0
+710,China,1949,0
+100,Colombia,1949,0
+94,Costa Rica,1949,0
+40,Cuba,1949,0
+315,Czechoslovakia,1949,0
+390,Denmark,1949,0
+42,Dominican Republic,1949,0
+130,Ecuador,1949,0
+92,El Salvador,1949,1
+530,Ethiopia,1949,0
+375,Finland,1949,0
+220,France,1949,0
+255,Germany,1949,0
+265,Germany (East),1949,0
+350,Greece,1949,0
+90,Guatemala,1949,0
+41,Haiti,1949,0
+91,Honduras,1949,0
+310,Hungary,1949,0
+750,India,1949,0
+850,Indonesia,1949,0
+630,Iran (Persia),1949,0
+645,Iraq,1949,0
+205,Ireland,1949,0
+666,Israel,1949,0
+325,Italy/Sardinia,1949,0
+740,Japan,1949,0
+663,Jordan,1949,0
+731,"Korea, People's Republic of",1949,0
+732,"Korea, Republic of",1949,0
+812,Laos,1949,0
+660,Lebanon,1949,0
+450,Liberia,1949,0
+70,Mexico,1949,0
+712,Mongolia,1949,0
+775,Myanmar (Burma),1949,0
+790,Nepal,1949,0
+210,Netherlands,1949,0
+920,New Zealand,1949,0
+93,Nicaragua,1949,0
+385,Norway,1949,0
+770,Pakistan,1949,0
+95,Panama,1949,1
+150,Paraguay,1949,1
+135,Peru,1949,0
+840,Philippines,1949,0
+290,Poland,1949,0
+235,Portugal,1949,0
+360,Rumania,1949,0
+365,Russia (Soviet Union),1949,0
+670,Saudi Arabia,1949,0
+560,South Africa,1949,0
+230,Spain,1949,0
+780,Sri Lanka (Ceylon),1949,0
+380,Sweden,1949,0
+225,Switzerland,1949,0
+652,Syria,1949,1
+713,Taiwan,1949,0
+800,Thailand,1949,1
+640,Turkey (Ottoman Empire),1949,0
+200,United Kingdom,1949,0
+2,United States of America,1949,0
+165,Uruguay,1949,0
+101,Venezuela,1949,0
+678,Yemen (Arab Republic of Yemen),1949,0
+345,Yugoslavia,1949,0

@@ -1,0 +1,777 @@
+ccode,country,year,cou.any
+700,Afghanistan,1945,0
+339,Albania,1945,0
+160,Argentina,1945,0
+900,Australia,1945,0
+305,Austria,1945,0
+211,Belgium,1945,0
+145,Bolivia,1945,0
+140,Brazil,1945,0
+355,Bulgaria,1945,0
+20,Canada,1945,0
+155,Chile,1945,0
+710,China,1945,0
+100,Colombia,1945,0
+94,Costa Rica,1945,0
+40,Cuba,1945,0
+315,Czechoslovakia,1945,0
+390,Denmark,1945,0
+42,Dominican Republic,1945,0
+130,Ecuador,1945,0
+92,El Salvador,1945,0
+530,Ethiopia,1945,0
+375,Finland,1945,0
+220,France,1945,0
+255,Germany,1945,0
+265,Germany (East),1945,0
+350,Greece,1945,0
+90,Guatemala,1945,0
+41,Haiti,1945,0
+91,Honduras,1945,0
+310,Hungary,1945,0
+630,Iran (Persia),1945,0
+645,Iraq,1945,0
+205,Ireland,1945,0
+325,Italy/Sardinia,1945,0
+740,Japan,1945,0
+660,Lebanon,1945,0
+450,Liberia,1945,0
+70,Mexico,1945,0
+712,Mongolia,1945,0
+790,Nepal,1945,0
+210,Netherlands,1945,0
+920,New Zealand,1945,0
+93,Nicaragua,1945,0
+385,Norway,1945,0
+95,Panama,1945,0
+150,Paraguay,1945,0
+135,Peru,1945,0
+840,Philippines,1945,0
+290,Poland,1945,0
+235,Portugal,1945,0
+360,Rumania,1945,0
+365,Russia (Soviet Union),1945,0
+670,Saudi Arabia,1945,0
+560,South Africa,1945,0
+230,Spain,1945,0
+380,Sweden,1945,0
+225,Switzerland,1945,0
+800,Thailand,1945,0
+640,Turkey (Ottoman Empire),1945,0
+200,United Kingdom,1945,0
+2,United States of America,1945,0
+165,Uruguay,1945,0
+101,Venezuela,1945,0
+678,Yemen (Arab Republic of Yemen),1945,0
+345,Yugoslavia,1945,0
+700,Afghanistan,1946,0
+339,Albania,1946,0
+160,Argentina,1946,0
+900,Australia,1946,0
+305,Austria,1946,0
+211,Belgium,1946,0
+145,Bolivia,1946,0
+140,Brazil,1946,0
+355,Bulgaria,1946,0
+20,Canada,1946,0
+155,Chile,1946,0
+710,China,1946,0
+100,Colombia,1946,0
+94,Costa Rica,1946,0
+40,Cuba,1946,0
+315,Czechoslovakia,1946,0
+390,Denmark,1946,0
+42,Dominican Republic,1946,0
+130,Ecuador,1946,0
+92,El Salvador,1946,0
+530,Ethiopia,1946,0
+375,Finland,1946,0
+220,France,1946,0
+255,Germany,1946,0
+265,Germany (East),1946,0
+350,Greece,1946,0
+90,Guatemala,1946,0
+41,Haiti,1946,1
+91,Honduras,1946,0
+310,Hungary,1946,0
+630,Iran (Persia),1946,0
+645,Iraq,1946,0
+205,Ireland,1946,0
+325,Italy/Sardinia,1946,0
+740,Japan,1946,0
+660,Lebanon,1946,0
+450,Liberia,1946,0
+70,Mexico,1946,0
+712,Mongolia,1946,0
+790,Nepal,1946,0
+210,Netherlands,1946,0
+920,New Zealand,1946,0
+93,Nicaragua,1946,0
+385,Norway,1946,0
+95,Panama,1946,0
+150,Paraguay,1946,0
+135,Peru,1946,0
+840,Philippines,1946,0
+290,Poland,1946,0
+235,Portugal,1946,1
+360,Rumania,1946,0
+365,Russia (Soviet Union),1946,0
+670,Saudi Arabia,1946,0
+560,South Africa,1946,0
+230,Spain,1946,0
+380,Sweden,1946,0
+225,Switzerland,1946,0
+652,Syria,1946,0
+800,Thailand,1946,0
+640,Turkey (Ottoman Empire),1946,0
+200,United Kingdom,1946,0
+2,United States of America,1946,0
+165,Uruguay,1946,0
+101,Venezuela,1946,0
+678,Yemen (Arab Republic of Yemen),1946,0
+345,Yugoslavia,1946,0
+700,Afghanistan,1947,0
+339,Albania,1947,0
+160,Argentina,1947,0
+900,Australia,1947,0
+305,Austria,1947,0
+211,Belgium,1947,0
+145,Bolivia,1947,0
+140,Brazil,1947,0
+355,Bulgaria,1947,0
+20,Canada,1947,0
+155,Chile,1947,0
+710,China,1947,0
+100,Colombia,1947,0
+94,Costa Rica,1947,0
+40,Cuba,1947,0
+315,Czechoslovakia,1947,0
+390,Denmark,1947,0
+42,Dominican Republic,1947,0
+130,Ecuador,1947,1
+92,El Salvador,1947,0
+530,Ethiopia,1947,0
+375,Finland,1947,0
+220,France,1947,0
+255,Germany,1947,0
+265,Germany (East),1947,0
+350,Greece,1947,0
+90,Guatemala,1947,0
+41,Haiti,1947,0
+91,Honduras,1947,0
+310,Hungary,1947,0
+750,India,1947,0
+630,Iran (Persia),1947,0
+645,Iraq,1947,0
+205,Ireland,1947,0
+325,Italy/Sardinia,1947,0
+740,Japan,1947,0
+660,Lebanon,1947,0
+450,Liberia,1947,0
+70,Mexico,1947,0
+712,Mongolia,1947,0
+790,Nepal,1947,0
+210,Netherlands,1947,0
+920,New Zealand,1947,0
+93,Nicaragua,1947,1
+385,Norway,1947,0
+770,Pakistan,1947,0
+95,Panama,1947,0
+150,Paraguay,1947,0
+135,Peru,1947,0
+840,Philippines,1947,0
+290,Poland,1947,0
+235,Portugal,1947,0
+360,Rumania,1947,0
+365,Russia (Soviet Union),1947,0
+670,Saudi Arabia,1947,0
+560,South Africa,1947,0
+230,Spain,1947,0
+380,Sweden,1947,0
+225,Switzerland,1947,0
+652,Syria,1947,0
+800,Thailand,1947,1
+640,Turkey (Ottoman Empire),1947,0
+200,United Kingdom,1947,0
+2,United States of America,1947,0
+165,Uruguay,1947,0
+101,Venezuela,1947,0
+678,Yemen (Arab Republic of Yemen),1947,0
+345,Yugoslavia,1947,0
+700,Afghanistan,1948,0
+339,Albania,1948,0
+160,Argentina,1948,0
+900,Australia,1948,0
+305,Austria,1948,0
+211,Belgium,1948,0
+145,Bolivia,1948,0
+140,Brazil,1948,0
+355,Bulgaria,1948,0
+20,Canada,1948,0
+155,Chile,1948,0
+710,China,1948,0
+100,Colombia,1948,0
+94,Costa Rica,1948,1
+40,Cuba,1948,0
+315,Czechoslovakia,1948,1
+390,Denmark,1948,0
+42,Dominican Republic,1948,0
+130,Ecuador,1948,0
+92,El Salvador,1948,1
+530,Ethiopia,1948,0
+375,Finland,1948,0
+220,France,1948,0
+255,Germany,1948,0
+265,Germany (East),1948,0
+350,Greece,1948,0
+90,Guatemala,1948,0
+41,Haiti,1948,0
+91,Honduras,1948,0
+310,Hungary,1948,0
+750,India,1948,0
+630,Iran (Persia),1948,0
+645,Iraq,1948,0
+205,Ireland,1948,0
+666,Israel,1948,0
+325,Italy/Sardinia,1948,0
+740,Japan,1948,0
+663,Jordan,1948,0
+731,"Korea, People's Republic of",1948,0
+732,"Korea, Republic of",1948,0
+660,Lebanon,1948,0
+450,Liberia,1948,0
+70,Mexico,1948,0
+712,Mongolia,1948,0
+775,Myanmar (Burma),1948,1
+790,Nepal,1948,0
+210,Netherlands,1948,0
+920,New Zealand,1948,0
+93,Nicaragua,1948,0
+385,Norway,1948,0
+770,Pakistan,1948,0
+95,Panama,1948,0
+150,Paraguay,1948,1
+135,Peru,1948,1
+840,Philippines,1948,0
+290,Poland,1948,0
+235,Portugal,1948,0
+360,Rumania,1948,0
+365,Russia (Soviet Union),1948,0
+670,Saudi Arabia,1948,0
+560,South Africa,1948,0
+230,Spain,1948,0
+780,Sri Lanka (Ceylon),1948,0
+380,Sweden,1948,0
+225,Switzerland,1948,0
+652,Syria,1948,0
+800,Thailand,1948,0
+640,Turkey (Ottoman Empire),1948,0
+200,United Kingdom,1948,0
+2,United States of America,1948,0
+165,Uruguay,1948,0
+101,Venezuela,1948,1
+678,Yemen (Arab Republic of Yemen),1948,0
+345,Yugoslavia,1948,0
+700,Afghanistan,1949,0
+339,Albania,1949,0
+160,Argentina,1949,0
+900,Australia,1949,0
+305,Austria,1949,0
+211,Belgium,1949,0
+145,Bolivia,1949,0
+140,Brazil,1949,0
+355,Bulgaria,1949,0
+20,Canada,1949,0
+155,Chile,1949,0
+710,China,1949,0
+100,Colombia,1949,0
+94,Costa Rica,1949,0
+40,Cuba,1949,0
+315,Czechoslovakia,1949,0
+390,Denmark,1949,0
+42,Dominican Republic,1949,0
+130,Ecuador,1949,0
+92,El Salvador,1949,1
+530,Ethiopia,1949,0
+375,Finland,1949,0
+220,France,1949,0
+255,Germany,1949,0
+265,Germany (East),1949,0
+350,Greece,1949,0
+90,Guatemala,1949,0
+41,Haiti,1949,0
+91,Honduras,1949,0
+310,Hungary,1949,0
+750,India,1949,0
+850,Indonesia,1949,0
+630,Iran (Persia),1949,0
+645,Iraq,1949,0
+205,Ireland,1949,0
+666,Israel,1949,0
+325,Italy/Sardinia,1949,0
+740,Japan,1949,0
+663,Jordan,1949,0
+731,"Korea, People's Republic of",1949,0
+732,"Korea, Republic of",1949,0
+812,Laos,1949,0
+660,Lebanon,1949,0
+450,Liberia,1949,0
+70,Mexico,1949,0
+712,Mongolia,1949,0
+775,Myanmar (Burma),1949,0
+790,Nepal,1949,0
+210,Netherlands,1949,0
+920,New Zealand,1949,0
+93,Nicaragua,1949,0
+385,Norway,1949,0
+770,Pakistan,1949,0
+95,Panama,1949,1
+150,Paraguay,1949,1
+135,Peru,1949,0
+840,Philippines,1949,0
+290,Poland,1949,0
+235,Portugal,1949,0
+360,Rumania,1949,0
+365,Russia (Soviet Union),1949,0
+670,Saudi Arabia,1949,0
+560,South Africa,1949,0
+230,Spain,1949,0
+780,Sri Lanka (Ceylon),1949,0
+380,Sweden,1949,0
+225,Switzerland,1949,0
+652,Syria,1949,1
+713,Taiwan,1949,0
+800,Thailand,1949,1
+640,Turkey (Ottoman Empire),1949,0
+200,United Kingdom,1949,0
+2,United States of America,1949,0
+165,Uruguay,1949,0
+101,Venezuela,1949,0
+678,Yemen (Arab Republic of Yemen),1949,0
+345,Yugoslavia,1949,0
+41,Haiti,1950,1
+145,Bolivia,1950,1
+95,Panama,1951,1
+145,Bolivia,1951,1
+160,Argentina,1951,1
+652,Syria,1951,1
+800,Thailand,1951,1
+40,Cuba,1952,1
+101,Venezuela,1952,1
+130,Ecuador,1952,1
+145,Bolivia,1952,1
+651,Egypt,1952,1
+100,Colombia,1953,1
+145,Bolivia,1953,1
+630,Iran,1953,1
+90,Guatemala,1954,1
+130,Ecuador,1954,1
+135,Peru,1954,1
+150,Paraguay,1954,1
+651,Egypt,1954,1
+652,Syria,1954,1
+90,Guatemala,1955,1
+140,Brazil,1955,1
+150,Paraguay,1955,1
+160,Argentina,1955,1
+678,Yemen Arab Republic; N. Yemen,1955,1
+41,Haiti,1956,1
+91,Honduras,1956,1
+130,Ecuador,1956,1
+135,Peru,1956,1
+160,Argentina,1956,1
+40,Cuba,1957,1
+41,Haiti,1957,1
+90,Guatemala,1957,1
+100,Colombia,1957,1
+663,Jordan,1957,1
+800,Thailand,1957,1
+100,Colombia,1958,1
+101,Venezuela,1958,1
+145,Bolivia,1958,1
+625,Sudan,1958,1
+645,Iraq,1958,1
+663,Jordan,1958,1
+770,Pakistan,1958,1
+775,Myanmar,1958,1
+800,Thailand,1958,1
+91,Honduras,1959,1
+140,Brazil,1959,1
+145,Bolivia,1959,1
+625,Sudan,1959,1
+645,Iraq,1959,1
+90,Guatemala,1960,1
+92,El Salvador,1960,1
+101,Venezuela,1960,1
+145,Bolivia,1960,1
+160,Argentina,1960,1
+490,Democratic Republic of the Congo,1960,1
+530,Ethiopia,1960,1
+640,Turkey,1960,1
+812,Laos,1960,1
+817,Republic of Vietnam,1960,1
+92,El Salvador,1961,1
+100,Colombia,1961,1
+101,Venezuela,1961,1
+130,Ecuador,1961,1
+160,Argentina,1961,1
+520,Somalia,1961,1
+530,Ethiopia,1961,1
+652,Syria,1961,1
+660,Lebanon,1961,1
+732,South Korea,1961,1
+42,Dominican Republic,1962,1
+90,Guatemala,1962,1
+101,Venezuela,1962,1
+135,Peru,1962,1
+160,Argentina,1962,1
+235,Portugal,1962,1
+433,Senegal,1962,1
+640,Turkey,1962,1
+652,Syria,1962,1
+678,Yemen Arab Republic; N. Yemen,1962,1
+775,Myanmar,1962,1
+42,Dominican Republic,1963,1
+90,Guatemala,1963,1
+91,Honduras,1963,1
+130,Ecuador,1963,1
+135,Peru,1963,1
+140,Brazil,1963,1
+160,Argentina,1963,1
+434,Benin,1963,1
+461,Togo,1963,1
+484,Congo,1963,1
+640,Turkey,1963,1
+645,Iraq,1963,1
+652,Syria,1963,1
+817,Republic of Vietnam,1963,1
+140,Brazil,1964,1
+145,Bolivia,1964,1
+481,Gabon,1964,1
+615,Algeria,1964,1
+812,Laos,1964,1
+817,Republic of Vietnam,1964,1
+42,Dominican Republic,1965,1
+434,Benin,1965,1
+490,Democratic Republic of the Congo,1965,1
+516,Burundi,1965,1
+615,Algeria,1965,1
+645,Iraq,1965,1
+812,Laos,1965,1
+817,Republic of Vietnam,1965,1
+850,Indonesia,1965,1
+101,Venezuela,1966,1
+130,Ecuador,1966,1
+160,Argentina,1966,1
+439,Burkina Faso,1966,1
+452,Ghana,1966,1
+475,Nigeria,1966,1
+482,Central African Republic,1966,1
+484,Congo,1966,1
+516,Burundi,1966,1
+625,Sudan,1966,1
+645,Iraq,1966,1
+652,Syria,1966,1
+812,Laos,1966,1
+850,Indonesia,1966,1
+350,Greece,1967,1
+434,Benin,1967,1
+451,Sierra Leone,1967,1
+452,Ghana,1967,1
+461,Togo,1967,1
+615,Algeria,1967,1
+678,Yemen Arab Republic; N. Yemen,1967,1
+95,Panama,1968,1
+135,Peru,1968,1
+432,Mali,1968,1
+451,Sierra Leone,1968,1
+484,Congo,1968,1
+645,Iraq,1968,1
+652,Syria,1968,1
+680,Yemen People's Republic; S. Yemen,1968,1
+95,Panama,1969,1
+140,Brazil,1969,1
+145,Bolivia,1969,1
+411,Equatorial Guinea,1969,1
+434,Benin,1969,1
+484,Congo,1969,1
+520,Somalia,1969,1
+620,Libya,1969,1
+625,Sudan,1969,1
+652,Syria,1969,1
+41,Haiti,1970,1
+145,Bolivia,1970,1
+160,Argentina,1970,1
+484,Congo,1970,1
+645,Iraq,1970,1
+652,Syria,1970,1
+698,Oman,1970,1
+811,Cambodia,1970,1
+145,Bolivia,1971,1
+160,Argentina,1971,1
+451,Sierra Leone,1971,1
+500,Uganda,1971,1
+600,Morocco,1971,1
+625,Sudan,1971,1
+640,Turkey,1971,1
+770,Pakistan,1971,1
+91,Honduras,1972,1
+92,El Salvador,1972,1
+130,Ecuador,1972,1
+434,Benin,1972,1
+452,Ghana,1972,1
+484,Congo,1972,1
+600,Morocco,1972,1
+694,Qatar,1972,1
+696,United Arab Emirates,1972,1
+155,Chile,1973,1
+165,Uruguay,1973,1
+350,Greece,1973,1
+517,Rwanda,1973,1
+645,Iraq,1973,1
+700,Afghanistan,1973,1
+812,Laos,1973,1
+145,Bolivia,1974,1
+235,Portugal,1974,1
+352,Cyprus,1974,1
+436,Niger,1974,1
+439,Burkina Faso,1974,1
+500,Uganda,1974,1
+530,Ethiopia,1974,1
+580,Madagascar,1974,1
+678,Yemen Arab Republic; N. Yemen,1974,1
+91,Honduras,1975,1
+130,Ecuador,1975,1
+135,Peru,1975,1
+160,Argentina,1975,1
+235,Portugal,1975,1
+434,Benin,1975,1
+475,Nigeria,1975,1
+483,Chad,1975,1
+541,Mozambique,1975,1
+581,Comoros,1975,1
+620,Libya,1975,1
+625,Sudan,1975,1
+771,Bangladesh,1975,1
+130,Ecuador,1976,1
+160,Argentina,1976,1
+165,Uruguay,1976,1
+436,Niger,1976,1
+475,Nigeria,1976,1
+482,Central African Republic,1976,1
+516,Burundi,1976,1
+625,Sudan,1976,1
+660,Lebanon,1976,1
+775,Myanmar,1976,1
+800,Thailand,1976,1
+91,Honduras,1977,1
+483,Chad,1977,1
+530,Ethiopia,1977,1
+540,Angola,1977,1
+591,Seychelles,1977,1
+625,Sudan,1977,1
+770,Pakistan,1977,1
+771,Bangladesh,1977,1
+800,Thailand,1977,1
+91,Honduras,1978,1
+145,Bolivia,1978,1
+432,Mali,1978,1
+435,Mauritania,1978,1
+452,Ghana,1978,1
+520,Somalia,1978,1
+581,Comoros,1978,1
+678,Yemen Arab Republic; N. Yemen,1978,1
+680,Yemen People's Republic; S. Yemen,1978,1
+700,Afghanistan,1978,1
+811,Cambodia,1978,1
+55,Grenada,1979,1
+92,El Salvador,1979,1
+145,Bolivia,1979,1
+411,Equatorial Guinea,1979,1
+452,Ghana,1979,1
+115,Suriname,1980,1
+145,Bolivia,1980,1
+404,Guinea-Bissau,1980,1
+435,Mauritania,1980,1
+439,Burkina Faso,1980,1
+450,Liberia,1980,1
+500,Uganda,1980,1
+551,Zambia,1980,1
+640,Turkey,1980,1
+54,Dominica,1981,1
+145,Bolivia,1981,1
+230,Spain,1981,1
+420,Gambia,1981,1
+452,Ghana,1981,1
+482,Central African Republic,1981,1
+771,Bangladesh,1981,1
+800,Thailand,1981,1
+90,Guatemala,1982,1
+435,Mauritania,1982,1
+439,Burkina Faso,1982,1
+452,Ghana,1982,1
+501,Kenya,1982,1
+652,Syria,1982,1
+771,Bangladesh,1982,1
+55,Grenada,1983,1
+90,Guatemala,1983,1
+436,Niger,1983,1
+439,Burkina Faso,1983,1
+452,Ghana,1983,1
+475,Nigeria,1983,1
+572,Swaziland,1983,1
+145,Bolivia,1984,1
+435,Mauritania,1984,1
+438,Guinea,1984,1
+452,Ghana,1984,1
+471,Cameroon,1984,1
+438,Guinea,1985,1
+450,Liberia,1985,1
+475,Nigeria,1985,1
+500,Uganda,1985,1
+581,Comoros,1985,1
+625,Sudan,1985,1
+800,Thailand,1985,1
+41,Haiti,1986,1
+130,Ecuador,1986,1
+570,Lesotho,1986,1
+680,Yemen People's Republic; S. Yemen,1986,1
+840,Philippines,1986,1
+439,Burkina Faso,1987,1
+451,Sierra Leone,1987,1
+516,Burundi,1987,1
+581,Comoros,1987,1
+616,Tunisia,1987,1
+696,United Arab Emirates,1987,1
+840,Philippines,1987,1
+950,Fiji,1987,1
+41,Haiti,1988,1
+90,Guatemala,1988,1
+95,Panama,1988,1
+160,Argentina,1988,1
+775,Myanmar,1988,1
+41,Haiti,1989,1
+90,Guatemala,1989,1
+95,Panama,1989,1
+150,Paraguay,1989,1
+483,Chad,1989,1
+530,Ethiopia,1989,1
+581,Comoros,1989,1
+625,Sudan,1989,1
+840,Philippines,1989,1
+475,Nigeria,1990,1
+551,Zambia,1990,1
+700,Afghanistan,1990,1
+840,Philippines,1990,1
+910,Papua New Guinea,1990,1
+41,Haiti,1991,1
+365,Russia,1991,1
+432,Mali,1991,1
+461,Togo,1991,1
+483,Chad,1991,1
+570,Lesotho,1991,1
+581,Comoros,1991,1
+645,Iraq,1991,1
+800,Thailand,1991,1
+101,Venezuela,1992,1
+135,Peru,1992,1
+451,Sierra Leone,1992,1
+580,Madagascar,1992,1
+581,Comoros,1992,1
+615,Algeria,1992,1
+645,Iraq,1992,1
+700,Afghanistan,1992,1
+475,Nigeria,1993,1
+483,Chad,1993,1
+516,Burundi,1993,1
+620,Libya,1993,1
+373,Azerbaijan,1994,1
+420,Gambia,1994,1
+450,Liberia,1994,1
+517,Rwanda,1994,1
+570,Lesotho,1994,1
+373,Azerbaijan,1995,1
+403,Sao Tome and Principe,1995,1
+451,Sierra Leone,1995,1
+645,Iraq,1995,1
+694,Qatar,1995,1
+436,Niger,1996,1
+438,Guinea,1996,1
+451,Sierra Leone,1996,1
+516,Burundi,1996,1
+694,Qatar,1996,1
+771,Bangladesh,1996,1
+451,Sierra Leone,1997,1
+551,Zambia,1997,1
+811,Cambodia,1997,1
+404,Guinea-Bissau,1998,1
+91,Honduras,1999,1
+404,Guinea-Bissau,1999,1
+436,Niger,1999,1
+437,Ivory Coast,1999,1
+581,Comoros,1999,1
+770,Pakistan,1999,1
+130,Ecuador,2000,1
+135,Peru,2000,1
+150,Paraguay,2000,1
+404,Guinea-Bissau,2000,1
+437,Ivory Coast,2000,1
+522,Djibouti,2000,1
+581,Comoros,2000,1
+950,Fiji,2000,1
+437,Ivory Coast,2001,1
+482,Central African Republic,2001,1
+516,Burundi,2001,1
+101,Venezuela,2002,1
+437,Ivory Coast,2002,1
+403,Sao Tome and Principe,2003,1
+404,Guinea-Bissau,2003,1
+435,Mauritania,2003,1
+482,Central African Republic,2003,1
+490,Democratic Republic of the Congo,2004,1
+435,Mauritania,2005,1
+461,Togo,2005,1
+483,Chad,2006,1
+800,Thailand,2006,1
+950,Fiji,2006,1
+404,Guinea-Bissau,2008,1
+435,Mauritania,2008,1
+438,Guinea,2008,1
+91,Honduras,2009,1
+580,Madagascar,2009,1
+404,Guinea-Bissau,2010,1
+436,Niger,2010,1
+580,Madagascar,2010,1
+438,Guinea,2011,1
+651,Egypt,2011,1
+404,Guinea-Bissau,2012,1
+432,Mali,2012,1
+625,Sudan,2012,1
+781,Maldives,2012,1
+910,Papua New Guinea,2012,1
+651,Egypt,2013,1
+369,Ukraine,2014,1
+439,Burkina Faso,2014,1
+570,Lesotho,2014,1
+800,Thailand,2014,1
+439,Burkina Faso,2015,1
+516,Burundi,2015,1
+640,Turkey,2016,1
+552,Zimbabwe,2017,1
+481,Gabon,2019,1
+625,Sudan,2019,1
+432,Mali,2020,1
+432,Mali,2021,1
+436,Niger,2021,1
+438,Guinea,2021,1
+483,Chad,2021,1
+625,Sudan,2021,1
+775,Myanmar,2021,1
+403,Sao Tome and Principe,2022,1
+404,Guinea-Bissau,2022,1
+439,Burkina Faso,2022,1
+436,Niger,2023,1
+481,Gabon,2023,1
+625,Sudan,2023,1
+145,Bolivia,2024,1
+771,Bangladesh,2024,1
