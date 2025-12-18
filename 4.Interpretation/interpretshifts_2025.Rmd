@@ -1,0 +1,695 @@
+---
+title: "Interpretation tool for EWP"
+author: "Natalie Bryce, with code by Vincent Bauer."
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document:
+    self_contained: true
+knit: (function(inputFile, encoding) { 
+          rmarkdown::render(inputFile,
+                        encoding=encoding, 
+                        output_file=paste0("interpretshifts_", Sys.Date(), ".html")) })
+---
+
+```{r setup, include=FALSE}
+
+rm(list=ls())
+
+#rootdir <- "~/Dropbox/EWP/2022SRA/"
+rootdir <- "/Users/nmbryce/Documents/R/SRA/2024-Statistical-Risk-Assessment/4.Interpretation"
+rootdir <- "C:\\Users\\Vincent\\Dropbox\\EWP\\2025-Statistical-Risk-Assessment\\4.Interpretation"
+
+knitr::opts_chunk$set(echo = TRUE, fig.width = 12, fig.height = 8)
+knitr::opts_knit$set( root.dir = rootdir)
+base_year <- "2024" # one year prior to today the forecast year #changed to 2023 - NB
+
+setwd(rootdir)
+
+#custom functions and settings
+source("scripts/master_plot_code.R")
+source("scripts/helpers.R")
+
+```
+
+
+## Code and summary plots {.tabset}
+
+### Replication code
+
+```{r rep, message=FALSE}
+
+# vb 9/20/2022, not sure what this was doing, maybe an old version conflict?
+#path <- "/Library/Frameworks/R.framework/Versions/3.5/Resources/library"
+
+library(tidyverse)
+library(data.table)
+library(reshape2)
+library(glmnet)
+library(ggplot2)
+library(ggridges)
+library(DT)
+library(plotly)
+
+
+# find the most recent data
+cv.glmnet <- "main_full_cv_glmnet_object_4Sep2025.rds"
+results <- "final_forecasts_data_4Sep2025.csv" 
+
+# rename to fix soem variables
+
+# pring when these files were created
+file.info(cv.glmnet)$ctime
+file.info(results)$ctime
+
+# load the files
+cv.glmnet <- readRDS(cv.glmnet)
+results <- fread(results) %>% 
+  mutate(
+    risk.2yr = risk.2025and2026.from2024, #changed to update years - NB
+    risk.1yr =risk.2025only.from2024  ) %>%  #changed to update years - NB
+  dplyr::rename(country = ewp_name) %>% 
+  #dplyr::select(-partyban.new.2) %>% # the last of the set, to be consistent with country
+  #rename(imr.sqrt = imr.fwd.fill.sqrt) %>% 
+  as.data.frame()
+
+# get the predictornames, but remove some that don't make sense to change
+predictornames <- coef(cv.glmnet) %>% 
+    rownames() %>% .[-1]
+
+#predictornames <- predictornames[predictornames!= "partyban.new.2"]
+
+```
+
+
+```{r}
+#translate objects into John Ray speak
+Xtest=results 
+Xtest$risk2017.2yr <- Xtest$risk.2yr
+Xtest$country_name <- Xtest$country
+model.out <- cv.glmnet
+Xtest <- as.data.frame(Xtest) # datatable has stricter requirement
+
+
+#data validation - note this is giving a warning because of small differences, so I added the code below to loosen up the requirement - NB
+#stopifnot(all(Xtest$risk2017.2yr == signif(as.vector(predict(model.out, newx = as.matrix(Xtest[,predictornames]),  s=model.out$lambda.min, type="response")),4)))
+
+# Print both values for debugging
+actual_values <- Xtest$risk2017.2yr
+predicted_values <- signif(as.vector(predict(model.out, newx = as.matrix(Xtest[, predictornames]), s = model.out$lambda.min, type = "response")), 4)
+
+# Check for exact matches
+comparison <- data.frame(Actual = actual_values, Predicted = predicted_values)
+print(comparison)
+
+
+# Use a tolerance level instead of enforcing exact match
+tolerance <- 1e-3  # or another small value
+all_equal <- all(abs(actual_values - predicted_values) < tolerance)
+stopifnot(all_equal)
+
+```
+
+
+```{r}
+# newx: just the Xs, as a matrix
+new_preds = matrix(nrow = dim(Xtest)[1], ncol = length(predictornames))
+colnames(new_preds) <- predictornames
+
+# for every IV, take the mean of the IV or mode if 0/1, and rerun the glmnet prediction with observations' values set to that IV's mean
+for(i in 1:length(predictornames)){
+  
+  newx = Xtest[, predictornames] %>% as.matrix()
+  iter_mu <- rep(NA, nrow(newx))
+  
+  # if the variable has 3 or fewer unique values, set it to mode, not mean; OR if I've prespecified it
+  # notice that this is the mode for the current year, not for all time
+  if(length(table(newx[, predictornames[i]] )) <= 3 | predictornames[i] %in% c("religiousfreedom", "mk_ongoing_count_log")){
+    iter_mu <- rep(as.numeric(names(tail(sort(table(newx[, predictornames[i]] )), 1))), nrow(newx))
+  } else {
+    iter_mu <- rep(mean(Xtest[, predictornames[i]], na.rm = T), nrow(newx))
+  }
+  
+  #but some variables are tied together, need to prespecify those here
+  
+      # set all party ban to category 4 (when partyban.new.2 ==1)
+    for(j in 1:length(iter_mu)){
+    if(colnames(newx)[predictornames[i]] %in% c('partyban.new.0', 'partyban.new.1') & sum(newx[j, c('partyban.new.0', 'partyban.new.1')]) > 0){
+        iter_mu[j] <- 0
+    }
+  }
+
+  
+  #note I changed reg.afr to reg.na - NMB
+  for(j in 1:length(iter_mu)){
+    if(colnames(newx)[predictornames[i]] %in% c('reg.na', 'reg.eap', 'reg.eur', 'reg.mna', 'reg.sca') & sum(newx[j, c('reg.na', 'reg.eap', 'reg.eur', 'reg.mna', 'reg.sca')]) > 0){
+        iter_mu[j] <- 0
+    }
+  }
+
+  
+  # set all ongoing counts to 0
+  # which then also has implications for other variables
+  #note updated the name of this var - NMB
+  if(predictornames[i]=="mk_ongoing_count_log2"){
+    
+    # set the MK variable
+    # this will get implemented later
+    # we could manually specify ithere but
+    # this is just how the code was set up by Jay
+    iter_mu <- rep(0, nrow(newx))
+
+    # set other dependent variables
+    # these can execute now
+    newx[,"widetargeting"] <- 0
+    newx[,"narrowtargeting"] <- 0
+  }
+  
+  newx[, predictornames[i]] <- iter_mu
+  
+  # vb 9/12/2020, adding the rounding that the model uses
+  new_preds[, predictornames[i]] <- signif(predict(model.out, newx = newx,  s="lambda.min", type="response") ,4) 
+  
+    #vb, not sure what this line is doing because its not saving anywhere so commenting it out
+    #predict.cv.glmnet(cv.glmnet, newx = as.matrix(results[,predictornames]),  s="lambda.min", type="response") 
+
+}
+
+# New column names are the 'predictornames' values plus '_new_mean'
+colnames(new_preds) <- paste0(predictornames, '_new_mean')
+
+# Combine the new predictions to the full data
+#pred_dat <- cbind(newx, new_preds)
+#this is wrong, newx has polity2.fl.3 == 0 for all observations; really want X-test, vbauer
+pred_dat <- cbind(Xtest[, predictornames], new_preds)
+
+#explore what this is doing
+#pred_dat <- data.frame(pred_dat)
+#pred_dat$risk.2yr <- Xtest$risk2017.2yr
+#pred_dat[,colnames(pred_dat)[grepl("polity|risk", colnames(pred_dat))]]
+
+# compute the prediction shifts as 'new prediction with IVs set to their means - original prediction'
+mean_shifts = matrix(nrow = dim(newx)[1], ncol = dim(newx)[2])
+
+# do this for each IV
+# someone really needs to teach John Ray about vectorization
+for(i in 1:length(predictornames)){
+  mean_shifts[, i] <-  Xtest$risk2017.2yr - new_preds[, i]
+}
+
+# vincent code, will get overwritten
+region.names <- c("reg.na", "reg.eap", "reg.eur", "reg.mna", "reg.sca") #changed reg.afr to reg.na - NMB
+party.names <- c('partyban.new.0', 'partyban.new.1')
+mean_shifts.save <- mean_shifts
+colnames(mean_shifts) <- predictornames
+mean_shifts <- as.data.frame(mean_shifts)
+mean_shifts$country_name <- results$country
+mean_shifts$region <- unlist(apply(mean_shifts[,region.names], 1, function(x) ifelse(sum(x) == 0, 0, x[x!=0])))
+mean_shifts$partyban <- unlist(apply(mean_shifts[,party.names], 1, function(x) ifelse(sum(x) == 0, 0, x[x!=0])))
+mean_shifts <- mean_shifts[, !(colnames(mean_shifts) %in% c(region.names, party.names))]
+saveRDS(mean_shifts, file = paste0("meanshifts_", Sys.Date(), ".rds"))
+mean_shifts <- mean_shifts.save
+
+# the sizes of the shifts from the original predictions to the new predictions with each IV changed one at a time are stored in the variables labeled predictornames plus '_diffs_with_mean_shifts'
+colnames(mean_shifts) <- paste0(predictornames, '_diffs_with_mean_shifts')
+
+# merge the new IVs to the full data
+pred_dat <- cbind(pred_dat, mean_shifts) %>% data.frame()
+pred_dat$risk2 <- Xtest$risk2017.2yr
+pred_dat$country_name <- as.character(Xtest$country_name)
+
+# create an index to plot the top 25 risk countries
+#pred_dat <- pred_dat[rev(order(pred_dat$risk2)),]
+#pred_dat$plot_order <- 1:nrow(pred_dat)
+#pred_dat <- pred_dat[order(pred_dat$plot_order),]
+
+# Put all the actual mean shifts into one region variable, then join that to the plot data
+new_mean_region <- pred_dat$risk2
+new_mean_region[pred_dat$reg.na == 1] <- pred_dat$reg.na_new_mean[pred_dat$reg.na == 1] #changed reg.afr to reg.na - NMB
+new_mean_region[pred_dat$reg.eap == 1] <- pred_dat$reg.eap_new_mean[pred_dat$reg.eap == 1]
+new_mean_region[pred_dat$reg.eur == 1] <- pred_dat$reg.eur_new_mean[pred_dat$reg.eur == 1]
+new_mean_region[pred_dat$reg.mna == 1] <- pred_dat$reg.mna_new_mean[pred_dat$reg.mna == 1]
+new_mean_region[pred_dat$reg.sca == 1] <- pred_dat$reg.sca_new_mean[pred_dat$reg.sca == 1]
+
+# Put all the new predictions into one partyban variable, then join that to the plot data
+new_mean_partyban <- pred_dat$risk2
+new_mean_partyban[pred_dat$partyban.new.0 == 1] <- pred_dat$partyban.new.0_new_mean[pred_dat$partyban.new.0 == 1]  
+new_mean_partyban[pred_dat$partyban.new.1 == 1] <- pred_dat$partyban.new.1_new_mean[pred_dat$partyban.new.1 == 1]  
+
+pred_dat$new_mean_region <- new_mean_region
+pred_dat$new_mean_partyban <- new_mean_partyban
+
+# Same thing with the mean shifts
+new_mean_shift_region <- rep(0, nrow(pred_dat))
+new_mean_shift_region[pred_dat$reg.na == 1] <- pred_dat$reg.na_diffs_with_mean_shifts[pred_dat$reg.na == 1] #changed reg.afr to reg. na - NMB
+new_mean_shift_region[pred_dat$reg.eap == 1] <- pred_dat$reg.eap_diffs_with_mean_shifts[pred_dat$reg.eap == 1]
+new_mean_shift_region[pred_dat$reg.eur == 1] <- pred_dat$reg.eur_diffs_with_mean_shifts[pred_dat$reg.eur == 1]
+new_mean_shift_region[pred_dat$reg.mna == 1] <- pred_dat$reg.mna_diffs_with_mean_shifts[pred_dat$reg.mna == 1]
+new_mean_shift_region[pred_dat$reg.sca == 1] <- pred_dat$reg.sca_diffs_with_mean_shifts[pred_dat$reg.sca == 1]
+
+new_mean_shift_partyban <- rep(0, nrow(pred_dat))
+new_mean_shift_partyban[pred_dat$partyban.new.0 == 1] <- pred_dat$partyban.new.0_diffs_with_mean_shifts[pred_dat$partyban.new.0 == 1]
+new_mean_shift_partyban[pred_dat$partyban.new.1 == 1] <- pred_dat$partyban.new.1_diffs_with_mean_shifts[pred_dat$partyban.new.1 == 1]
+
+pred_dat$new_mean_shift_region <- new_mean_shift_region
+pred_dat$new_mean_shift_partyban <- new_mean_shift_partyban
+
+#check what's going on
+#pred_dat[pred_dat$country_name=="Pakistan",colnames(pred_dat)[grepl("polity|risk|country_name", colnames(pred_dat))]]
+
+#changed reg.afr to reg.na - NMB
+mean_vars <- c(colnames(new_preds)[!(colnames(new_preds) %in% c('reg.na_new_mean','reg.eap_new_mean','reg.eur_new_mean','reg.mna_new_mean','reg.sca_new_mean',
+                                                                'partyban.new.0_new_mean', 'partyban.new.1_new_mean'))], 'new_mean_region', 'new_mean_partyban')
+
+# format the data for plotting
+mean_plotdat = melt(pred_dat[, c('country_name', mean_vars)], id.vars = c('country_name'))
+mean_plotdat$variable = gsub("_new_mean", "", mean_plotdat$variable)
+
+#changed reg.afr to reg.na - NMB
+shift_vars <- c(colnames(mean_shifts)[!colnames(mean_shifts) %in% c('reg.na_diffs_with_mean_shifts', 'reg.eap_diffs_with_mean_shifts', 'reg.eur_diffs_with_mean_shifts', 'reg.mna_diffs_with_mean_shifts', 'reg.sca_diffs_with_mean_shifts', 
+                                                                    'partyban.new.0_diffs_with_mean_shifts', 'partyban.new.1_diffs_with_mean_shifts')], 'new_mean_shift_region','new_mean_shift_partyban')
+
+shift_size_plotdat = melt(pred_dat[, c('country_name', shift_vars)], id.vars = c('country_name'))
+shift_size_plotdat$variable = gsub("_diffs_with_mean_shifts", "", shift_size_plotdat$variable)
+
+
+# merge the original predictions to the predicted mean shifts
+mean_shift_plotdat_1 = pred_dat[, c('country_name', 'risk2') ]
+
+mean_shift_plotdat_2 = melt(pred_dat[, c('country_name', shift_vars)], id.vars = c('country_name'))
+
+mean_shift_plotdat = dplyr::left_join(mean_shift_plotdat_1, mean_shift_plotdat_2, by="country_name")
+
+mean_shift_plotdat$variable = gsub("_new_mean", "", mean_shift_plotdat$variable, fixed = T)
+
+colnames(mean_shift_plotdat) <- c('country_name','start','variable','end')
+
+#pred_dat <- pred_dat[, !colnames(pred_dat) %in% c('includesnonstate')]
+#pred_dat <- pred_dat[rank(pred_dat$risk2), ] #not the correct function to use, needs to be order, vbauer
+pred_dat <- pred_dat[order(pred_dat$risk2), ] #
+
+#data validation
+stopifnot(all(table(pred_dat$country_name)==1))
+
+write.csv(pred_dat, 'new_prediction_data_2.csv', row.names = F)
+
+#predictornames <- predictornames[!predictornames %in% c('includesnonstate')]
+
+
+```
+
+### Big shifters
+
+Note,removing durable.ln_diffs_with_mean_shifts from colstouse ( 8/18/2020 )
+
+```{r topshiftdata}
+
+# Make thing that gives top X shifters and their amount or at least sign, by country
+
+# drop the intercept - added from Chad's code - NMB
+predictornames <- predictornames[-1]
+
+# specify the columns to use, which means getting rid of region and partyban as well as some other variables that dont make sense
+#changed reg.afr to reg.na - NMB
+colstouse <- predictornames %>% paste0(., "_diffs_with_mean_shifts")
+colstouse[colstouse == "reg.na_diffs_with_mean_shifts"] <- "new_mean_shift_region"
+colstouse[colstouse == "reg.eap_diffs_with_mean_shifts"] <- "new_mean_shift_region"
+colstouse[colstouse == "reg.eur_diffs_with_mean_shifts"] <- "new_mean_shift_region"
+colstouse[colstouse == "reg.mna_diffs_with_mean_shifts"] <- "new_mean_shift_region"
+colstouse[colstouse == "reg.sca_diffs_with_mean_shifts"] <- "new_mean_shift_region"
+colstouse[colstouse == "partyban.new.0_diffs_with_mean_shifts"] <- "new_mean_shift_partyban"
+colstouse[colstouse == "partyban.new.1_diffs_with_mean_shifts"] <- "new_mean_shift_partyban"
+colstouse[colstouse == "year_diffs_with_mean_shifts"] <- NA # does not make sense to shift
+colstouse[colstouse == "year_sq_diffs_with_mean_shifts"] <-  NA # does not make sense to shift
+colstouse <- na.omit(colstouse)
+colstouse <- unique(colstouse) # some are now duplicated, so remove those
+colstouse <- c("country_name", "risk2", colstouse) # add some additional columns
+
+
+# all variables should be in pred_data
+stopifnot(length(colstouse[!(colstouse %in% colnames(pred_dat))])==0)
+
+usefulshiftdata = pred_dat[,colstouse]
+
+colnames(usefulshiftdata)=gsub(colnames(usefulshiftdata), pattern="_diffs_with_mean_shifts", replacement="")
+
+usefulshiftdata = usefulshiftdata %>% arrange(-risk2)
+
+# Create long list where first column is country name repeated P times; second column holds the sequence of top P "shifting" variables for that country, and the next column contains the amount (and sign) of the corresponding shifts. 
+
+P=5  # number of top factors to include
+rowindex=1
+bigshifters=matrix(NA,nrow=P*nrow(usefulshiftdata), ncol=3)
+colnames(bigshifters) = c("country_name","variable","shift")
+for (j in 1:nrow(usefulshiftdata)){
+  print(usefulshiftdata$country_name[j])
+  subdat=-1*usefulshiftdata[j,3:ncol(usefulshiftdata)] #-1 to change direction so +1 is higher risk.
+  
+  #orderindex=suppressWarnings(order(abs(subdat), decreasing=TRUE))
+    orderindex = order(abs(as.numeric(subdat)), decreasing=TRUE) #changed to match Chad's code - NMB
+  keepers=subdat[orderindex][1:P]
+  
+  bigshifters[seq(rowindex,rowindex+P-1),"country_name"]=usefulshiftdata$country_name[j]  
+
+  bigshifters[seq(rowindex,rowindex+P-1),"variable"] = names(keepers)  
+  bigshifters[seq(rowindex,rowindex+P-1),"shift"] = as.numeric(keepers)  
+
+  rowindex=rowindex+P  
+}
+write.csv(bigshifters, file = paste0("bigshiftvariables_", Sys.Date(), ".csv"))
+```
+
+
+### Which traits are most common
+
+The problem with comparing differences in the average value of these variables is that variables with a larger scale (i.e. from -100 to 100) will appear to be more important than variables with a smaller scale (-1 to 1). I show the difference in the actual means and also between the standardized means (centering all variables to have mean 0 and standard deviation 1).
+
+Variable definitions
+
+* mean.risk: the average value of the variable among countries coded as at risk (4%+ predicted chance or any mass killing ever )
+* mean.norisk: the average value of the variable among countries coded as at not at risk
+* diff.mean: difference in the mean value between countries at risk and not at risk
+* diff.mean.abs: absolute value of the difference in the mean value between countries at risk and not at risk
+* sd.risk: average value of the centered variables for countries coded as at risk. For example, sd.risk for battledeaths.log2 is 1.96 which means that countries coded as at risk are on average 1.96 standard deviations above the mean on battle deaths (this is a lot).
+* sd.norisk: average value of the centered variables for countries coded as not at risk. 
+* diff.sd: difference in the mean scaled value between countries at risk and not at risk
+* diff.sd.abs: absolute value of the difference in the scaled value between countries at risk and not at risk
+
+Note to self
+
+* some of the interpretation might be easier if the variables were flipped based on direction of effect (i.e. freemovement changed to unfreemovement)
+
+*Among high-risk/low-risk countries. Setting the cut-off for "high risk" as 4%  + predicted chance of mass killing in the next two years.*
+
+```{r common-traits-risk, echo = FALSE}
+
+cutoff <- .04
+results$predict <- ifelse(results$risk.2yr > cutoff, 1, 0)
+
+
+#difference in means
+pred1 <- apply(results[results$predict == 1,predictornames], 2, mean)
+pred0 <- apply(results[results$predict == 0,predictornames], 2, mean)
+table <- cbind(pred1, pred0) %>% as.data.frame
+table$diff.mean <- table$pred1 - table$pred0
+table$diff.mean.abs <- abs(table$diff.mean)
+table.mean <- table
+
+#difference in standard deviation
+results.tmp <- apply(results[,c(predictornames, "predict")], 2, scale) %>% data.frame
+pred1 <- apply(results.tmp[results.tmp$predict > 0,predictornames], 2, mean)
+pred0 <- apply(results.tmp[results.tmp$predict < 0,predictornames], 2, mean)
+table <- cbind(pred1, pred0) %>% as.data.frame
+table$diff.sd <- table$pred1 - table$pred0
+table$diff.sd.abs <- abs(table$diff.sd)
+colnames(table)[1:2] <- c("sd.risk", "sd.norisk")
+table.sd <- table
+
+#bind
+stopifnot(rownames(table.mean)==rownames(table.sd))
+table <- cbind(table.mean, table.sd)
+colnames(table)[1:2] <- c("mean.risk", "mean.norisk")
+table <- table[order(table$diff.sd.abs, decreasing=TRUE),]
+
+datatable(table, options = list(pageLength = nrow(table)), width="100%") %>%
+    formatRound(columns=colnames(table), digits=2)
+```
+
+```{r, eval=FALSE, echo=FALSE}
+
+#ggplot version
+dat <- gather(results.tmp, key = "predictor", value = "value", predictornames) #using the scaled version
+dat$predictor <- factor(dat$predictor, levels=rev(rownames(table)))  #order according to most difference
+dat$predict <- ifelse(dat$predict > 0, 1, 0)
+
+ggplot(dat, aes(y = predictor, x = value, fill=predict)) +
+    facet_wrap(. ~ predict, ncol=2) +
+    geom_density_ridges()
+
+
+
+dat$y <- (as.numeric(dat$predictor) - max(as.numeric(dat$predictor))) * -1
+dat.tmp <- filter(dat, y <= 30) %>% droplevels()
+dat.tmp$group <- ifelse(dat.tmp$y <= 15, 0, 1)
+
+good <- "blue"
+bad <- "red"
+
+#full version
+ggplot(dat, aes(y = predictor, x = value, fill=factor(predict))) +
+    geom_density_ridges(alpha=.4, scale=1) +
+    scale_fill_manual("Risk", values = c("0" = good, "1" = bad), 
+                                labels=c("0"="< 4%", "1"="> 4% (at risk)")) +
+    scale_y_discrete(labels = paste0(length(levels(dat$predictor)):1, ": ", levels(dat$predictor))) +
+    theme_bw() +
+    labs(y="Density", x = "Standardized Value") +
+    theme(legend.position="bottom",
+            strip.background = element_blank(),
+            strip.text.x = element_blank())
+
+#top x version
+ggplot(dat.tmp, aes(y = predictor, x = value, fill=factor(predict))) +
+    geom_density_ridges(alpha=.4, scale=1) +
+    facet_wrap(. ~ group, scales="free") +
+    scale_fill_manual("Risk", values = c("0" = good, "1" = bad), 
+                                labels=c("0"="< 4%", "1"="> 4% (at risk)")) +
+    theme_bw() +
+    labs(y="Density", x = "Standardized Value") +
+    theme(legend.position="bottom",
+            strip.background = element_blank(),
+            strip.text.x = element_blank())
+
+
+```
+
+*Among countries that have experienced mass killings. Setting the cut-off for "high risk" as any mass killing ever.*
+
+```{r common-traits-anymk, echo = FALSE}
+
+#difference in means
+results$predict <- results$mk_ever
+pred1 <- apply(results[results$predict == 1,predictornames], 2, mean)
+pred0 <- apply(results[results$predict == 0,predictornames], 2, mean)
+table <- cbind(pred1, pred0) %>% as.data.frame
+table$diff.mean <- table$pred1 - table$pred0
+table$diff.mean.abs <- abs(table$diff.mean)
+table.mean <- table
+
+#difference in standard deviation
+results.tmp <- apply(results[,c(predictornames, "predict")], 2, scale) %>% data.frame
+pred1 <- apply(results.tmp[results.tmp$predict > 0,predictornames], 2, mean)
+pred0 <- apply(results.tmp[results.tmp$predict < 0,predictornames], 2, mean)
+table <- cbind(pred1, pred0) %>% as.data.frame
+table$diff.sd <- table$pred1 - table$pred0
+table$diff.sd.abs <- abs(table$diff.sd)
+colnames(table)[1:2] <- c("sd.risk", "sd.norisk")
+table.sd <- table
+
+#bind
+stopifnot(rownames(table.mean)==rownames(table.sd))
+table <- cbind(table.mean, table.sd)
+colnames(table)[1:2] <- c("mean.risk", "mean.norisk")
+table <- table[order(table$diff.sd.abs, decreasing=TRUE),]
+
+datatable(table, options = list(pageLength = nrow(table)), width="100%") %>%
+    formatRound(columns=colnames(table), digits=2)
+```
+
+
+### Variable importances
+
+```{r var_imp, echo = FALSE}
+
+#changed slightly by VB
+
+
+coefs <- coef(cv.glmnet, s = "lambda.min")
+
+importances = data.frame(
+  varname = rownames(coefs),
+  coefvalue = as.numeric(coefs),
+  stringsAsFactors=FALSE
+)
+
+importances$stdevs = rep(NA, nrow(importances))
+
+for(i in 2:nrow(importances)){
+   importances$stdevs[i] <-sd(Xtest[, importances$varname[i]])
+}
+
+
+# For "includesnonstate", it has no variance in the current sample
+# but give it a fake SD so that doesn't make it unimportant
+#importances$stdevs[importances$varname=="includesnonstate"] <- .5
+
+importances$var_importance = importances$coefvalue*importances$stdevs
+
+# formatting
+rownames(importances)=importances$varname
+importances$coefvalue <- round(importances$coefvalue, 2)
+importances$stdevs <- round(importances$stdevs, 2)
+importances$var_importance <- round(importances$var_importance, 2)
+
+datatable(importances[order(-abs(importances$var_importance)),])
+
+```
+
+
+```{r}
+
+importances <- importances[order(-abs(importances$var_importance)),]
+importances <- importances[!is.na(importances$var_importance),]
+importances$varname <- factor(importances$varname, levels = rev(importances$varname))
+importances$var_importance <- abs(importances$var_importance)
+
+
+ggplot(importances, aes(x = var_importance, y = varname)) +
+    geom_point() +
+    labs(x = "Variable Importance", y = "Variable") +
+    theme_bw() +
+    margin
+
+
+```
+
+### Plots of prediction shifts from original prediction
+
+
+The value for partyban is 0 which is categories 0/1 in VDEM (this note was prev here - NB)
+
+The value for region is North America (changed from africa - NB)
+
+
+```{r shift_change, echo = FALSE}
+
+#this used to be filter(coefvalue > 0) but that dropped any negative shifts
+importances_nonzero=importances %>% filter(coefvalue != 0) %>% arrange(-abs(var_importance))
+
+shift_vars <- importances_nonzero$varname
+
+shift_vars <- shift_vars[!shift_vars %in% c('(Intercept)', 'partyban.new.0', 'partyban.new.1', 'partyban.new.2', 'reg.na','reg.eap','reg.eur','reg.mna','reg.sca')]
+shift_vars <- c('new_mean_shift_partyban', 'new_mean_shift_region', as.character(shift_vars))
+
+mean_shift_plotdat$variable <- gsub('_diffs_with_mean_shifts', '', mean_shift_plotdat$variable, fixed = T)
+
+for(i in 1:length(shift_vars)){
+  
+  sub <- mean_shift_plotdat[mean_shift_plotdat$variable == shift_vars[i],]
+  
+  #This seems to have order by post-change risk, which is wrong.
+  #sub <- sub[rev(order(abs(sub$end))),]
+  #sub <- sub[1:30,]
+  
+  # Ordering by "starting" (actual) risk makes sense:
+  sub <- sub[rev(order(sub$start)),]
+  sub = sub[1:30,]
+  sub$plot_order <- nrow(sub):1
+  
+    # check what the value was again
+  
+    # if the variable has 3 or fewer unique values, set it to mode, not mean; OR if I've prespecified it
+  # notice that this is the mode for the current year, not for all time
+  renamed <- str_remove(shift_vars[i], "_diffs_with_mean_shifts")
+
+  if(!(renamed %in% c("new_mean_shift_region", "new_mean_shift_partyban"))){
+    
+      if(length(table(newx[, renamed] )) <= 3 | renamed %in% c("new_mean_shift_region", "new_mean_shift_partyban")){
+    iter_mu <- rep(as.numeric(names(tail(sort(table(newx[, renamed] )), 1))), nrow(newx))  %>% round(., 2)
+  } else {
+    iter_mu <- rep(mean(Xtest[, renamed], na.rm = T), nrow(newx)) %>% round(., 2)
+  }
+
+  }
+  
+  
+  #but some variables are tied together, need to prespecify those here
+  
+  
+    # set all party ban to category 4
+    if(renamed ==  "new_mean_shift_partyban"){
+      
+            iter_mu <- rep("partyban.2: no parties banned", nrow(newx))
+    
+    }
+
+  
+    # set all regions to africa - (was previously north america - changed to africa because that is now the reference - NMB)
+    if(renamed ==  "new_mean_shift_region"){
+    
+            iter_mu <- rep("africa", nrow(newx))
+  }
+  
+  # set all ongoing counts to 0
+  # which then also has implications for other variables
+  if(renamed ==  "mk_ongoing_count_log"){
+    
+    # set the MK variable
+    # this will get implemented later
+    # we could manually specify ithere but
+    # this is just how the code was set up by Jay
+    iter_mu <- rep(0, nrow(newx))
+
+  }
+  
+  iter_mu <- unique(iter_mu)
+  
+  # I don't think we want this:
+  #sub <- sub[order(as.numeric(rownames(sub))),]
+  
+  title <- paste0("Setting ", shift_vars[i], " to its mode (or mean if continuous)\nand change in MK prob, 2-year horizon\nset the value to: ", iter_mu)
+  
+
+  
+  
+ p <- ggplot(data = sub, aes(x = factor(plot_order), y = start)) +
+   geom_segment(aes(xend = factor(plot_order), y = start, yend = start - end), arrow = arrow(length = unit(0.03, "npc"))) +
+   geom_point() +
+   scale_x_discrete(breaks = factor(sub$plot_order), labels = as.character(sub$country_name)) +
+   theme_classic() +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1), text = element_text(size = 14)) +
+   labs(x = '', y = 'Mean shift', title = NULL) +
+   coord_flip()
+  
+  cat(title)
+  print(p)
+}
+```
+
+
+### Shifts by country
+
+```{r shifts_by_country, echo = FALSE}
+#importances <- importances[importances$varname %in% shift_vars,]
+#importances <- importances[order(abs(importances$var_importance), decreasing = TRUE),]
+#Xtest <- Xtest[order(Xtest$risk2017.2yr, decreasing = T),]
+
+Xtest = Xtest %>% arrange(-risk2017.2yr)
+
+# choose any countries to include outside of the top 50
+select <- which(Xtest$country_name %in% c("United States of America", "Venezuela", "Haiti", "Equatorial Guinea", "Rwanda"))
+select <- unique(c(1:50, select))
+Xtest.top = Xtest[select,]  #limit to top 50 and any countries added above
+
+#for(i in 1:length(Xtest$country_name)){
+for(i in 1:nrow(Xtest.top)){
+  
+  sub <- mean_shift_plotdat[mean_shift_plotdat$country_name == Xtest.top$country_name[i],]
+  
+  
+  sub$plot_order <- 1:nrow(sub)
+  title <- paste0("MK risk change in ", sub$country_name[1],"\nby shifting variables to mean/mode, 2-year horizon")
+  
+  p <- ggplot(data = sub, aes(x = factor(plot_order), y = start)) +
+   geom_segment(aes(xend = factor(plot_order), y = start, yend = start - end), arrow = arrow(length = unit(0.03, "npc"))) +
+   geom_point() +
+   scale_x_discrete(breaks = factor(sub$plot_order), labels = as.character(sub$variable)) +
+   theme_classic() +
+   theme(axis.text.x = element_text(angle = 90, hjust = 1), text = element_text(size = 14)) +
+   labs(x = '', y = 'Mean shift', title = NULL) +
+   coord_flip()
+  
+  cat(title)
+  print(p)
+}
+```
+
+
