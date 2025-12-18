@@ -1,0 +1,175 @@
+,country,ccode,ewp_name
+1,United States of America,2,United States of America
+2,Canada,20,Canada
+3,Cuba,40,Cuba
+4,Haiti,41,Haiti
+5,Dominican Republic,42,Dominican Republic
+6,Jamaica,51,Jamaica
+7,Trinidad and Tobago,52,Trinidad and Tobago
+8,Mexico,70,Mexico
+9,Guatemala,90,Guatemala
+10,Honduras,91,Honduras
+11,El Salvador,92,El Salvador
+12,Nicaragua,93,Nicaragua
+13,Costa Rica,94,Costa Rica
+14,Panama,95,Panama
+15,Colombia,100,Colombia
+16,Venezuela,101,Venezuela
+17,Guyana,110,Guyana
+18,Surinam,115,Suriname
+19,Ecuador,130,Ecuador
+20,Peru,135,Peru
+21,Brazil,140,Brazil
+22,Bolivia,145,Bolivia
+23,Paraguay,150,Paraguay
+24,Chile,155,Chile
+25,Argentina,160,Argentina
+26,Uruguay,165,Uruguay
+27,United Kingdom,200,United Kingdom
+28,Ireland,205,Ireland
+29,Netherlands,210,Netherlands
+30,Belgium,211,Belgium
+31,Luxembourg,212,Luxembourg
+32,France,220,France
+33,Switzerland,225,Switzerland
+34,Spain,230,Spain
+35,Portugal,235,Portugal
+36,Germany,255,Germany
+37,Germany (East),265,East Germany
+38,Poland,290,Poland
+39,Austria,305,Austria
+40,Hungary,310,Hungary
+41,Czechoslovakia,315,Czechoslovakia
+42,Czech Republic,316,Czech Republic
+43,Slovakia,317,Slovakia
+44,Italy/Sardinia,325,Italy
+45,Malta,338,Malta
+46,Albania,339,Albania
+47,Montenegro,341,Montenegro
+48,Macedonia (Former Yugoslav Republic of),343,Macedonia
+49,Croatia,344,Croatia
+50,Serbia,345,Serbia
+51,Bosnia-Herzegovina,346,Bosnia and Herzegovina
+52,Kosovo,347,Kosovo
+53,Slovenia,349,Slovenia
+54,Greece,350,Greece
+55,Cyprus,352,Cyprus
+56,Bulgaria,355,Bulgaria
+57,Moldova,359,Moldova
+58,Rumania,360,Romania
+59,Russia (Soviet Union),365,Russia
+60,Estonia,366,Estonia
+61,Latvia,367,Latvia
+62,Lithuania,368,Lithuania
+63,Ukraine,369,Ukraine
+64,Belarus (Byelorussia),370,Belarus
+65,Armenia,371,Armenia
+66,Georgia,372,Georgia
+67,Azerbaijan,373,Azerbaijan
+68,Finland,375,Finland
+69,Sweden,380,Sweden
+70,Norway,385,Norway
+71,Denmark,390,Denmark
+72,Cape Verde,402,Cape Verde
+73,Guinea-Bissau,404,Guinea-Bissau
+74,Equatorial Guinea,411,Equatorial Guinea
+75,Gambia,420,The Gambia
+76,Mali,432,Mali
+77,Senegal,433,Senegal
+78,Benin,434,Benin
+79,Mauritania,435,Mauritania
+80,Niger,436,Niger
+81,Cote D’Ivoire,437,Ivory Coast
+82,Guinea,438,Guinea
+83,Burkina Faso (Upper Volta),439,Burkina Faso
+84,Liberia,450,Liberia
+85,Sierra Leone,451,Sierra Leone
+86,Ghana,452,Ghana
+87,Togo,461,Togo
+88,Cameroon,471,Cameroon
+89,Nigeria,475,Nigeria
+90,Gabon,481,Gabon
+91,Central African Republic,482,Central African Republic
+92,Chad,483,Chad
+93,Congo,484,Republic of Congo
+94,"Congo, Democratic Republic of (Zaire)",490,Democratic Republic of Congo
+95,Uganda,500,Uganda
+96,Kenya,501,Kenya
+97,Tanzania/Tanganyika,510,Tanzania
+98,Burundi,516,Burundi
+99,Rwanda,517,Rwanda
+100,Somalia,520,Somalia
+101,Djibouti,522,Djibouti
+102,Ethiopia,530,Ethiopia
+103,Eritrea,531,Eritrea
+104,Angola,540,Angola
+105,Mozambique,541,Mozambique
+106,Zambia,551,Zambia
+107,Zimbabwe (Rhodesia),552,Zimbabwe
+108,Malawi,553,Malawi
+109,South Africa,560,South Africa
+110,Namibia,565,Namibia
+111,Lesotho,570,Lesotho
+112,Botswana,571,Botswana
+113,Swaziland,572,Eswatini
+114,Madagascar,580,Madagascar
+115,Comoros,581,Comoros
+116,Mauritius,590,Mauritius
+117,Morocco,600,Morocco
+118,Algeria,615,Algeria
+119,Tunisia,616,Tunisia
+120,Libya,620,Libya
+121,Sudan,625,Sudan
+122,South Sudan,626,South Sudan
+123,Iran (Persia),630,Iran
+124,Turkey (Ottoman Empire),640,Turkey
+125,Iraq,645,Iraq
+126,Egypt,651,Egypt
+127,Syria,652,Syria
+128,Lebanon,660,Lebanon
+129,Jordan,663,Jordan
+130,Israel,666,Israel
+131,Saudi Arabia,670,Saudi Arabia
+132,Yemen (Arab Republic of Yemen),678,Arab Republic of Yemen
+133,"Yemen, People's Republic of",680,People's Republic of Yemen
+134,Kuwait,690,Kuwait
+135,Bahrain,692,Bahrain
+136,Qatar,694,Qatar
+137,United Arab Emirates,696,United Arab Emirates
+138,Oman,698,Oman
+139,Afghanistan,700,Afghanistan
+140,Turkmenistan,701,Turkmenistan
+141,Tajikistan,702,Tajikistan
+142,Kyrgyz Republic,703,Kyrgystan
+143,Uzbekistan,704,Uzbekistan
+144,Kazakhstan,705,Kazakhstan
+145,China,710,China
+146,Mongolia,712,Mongolia
+147,Taiwan,713,Taiwan
+148,"Korea, People's Republic of",731,North Korea
+149,"Korea, Republic of",732,South Korea
+150,Japan,740,Japan
+151,India,750,India
+152,Bhutan,760,Bhutan
+153,Pakistan,770,Pakistan
+154,Bangladesh,771,Bangladesh
+155,Myanmar (Burma),775,Burma/Myanmar
+156,Sri Lanka (Ceylon),780,Sri Lanka
+157,Maldives,781,Maldives
+158,Nepal,790,Nepal
+159,Thailand,800,Thailand
+160,Cambodia (Kampuchea),811,Cambodia
+161,Laos,812,Laos
+162,"Vietnam, Democratic Republic of",816,Democratic Republic of Vietnam
+163,"Vietnam, Republic of",817,Republic of Vietnam
+164,Malaysia,820,Malaysia
+165,Singapore,830,Singapore
+166,Philippines,840,Philippines
+167,Indonesia,850,Indonesia
+168,East Timor,860,Timor-Leste
+169,Australia,900,Australia
+170,Papua New Guinea,910,Papua New Guinea
+171,New Zealand,920,New Zealand
+172,Solomon Islands,940,Solomon Islands
+173,Fiji,950,Fiji
+174,Yemen,679,Yemen
